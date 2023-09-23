@@ -1,0 +1,16 @@
+{
+  "data": [
+    {
+      "id": 2,
+      "email": "prakhov.egor@gmail.com",
+      "name": "",
+      "m_type": "-",
+      "tg_id": [
+        "853071617"
+      ],
+      "plants": [],
+      "start_date": "2023-08-30T15:00",
+      "period": "1_day"
+    }
+  ]
+}

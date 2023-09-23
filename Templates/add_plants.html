@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+    <h1 class="display-6">Добавление:</h1>
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
+        </div>
+        <div class="col-auto">
+            <input type="submit" class="btn btn-success" name="search" value="Искать">
+        </div>
+        <div class="col-auto">
+            <input type="submit" class="btn btn-primary" name="create_plant" value="Не нашли нужное растение?">
+        </div>
+    </div><br>
+
+    <div style="height:600px;width:100%;overflow-y:scroll;">
+        <div class="row ">
+            {% for plant in plants %}
+            <div class="col d-flex align-items-stretch justify-content-center my-2">
+                <div class="card" style="width: 18rem;">
+                    <img src="{{url_for('static', filename=plant[1]+'.jpg')}}" class="card-img-top" alt="Растение">
+                    <div class="card-body text-center ">
+                        <h5 class="card-title">{{ plant[1] }}</h5>
+                        {% if plant[0] in user_plants %}
+                        <a href="#" class="btn btn-primary disabled">Добавлено</a>
+                        {% else %}
+                        <!--                    <a href="#" id="noScrollButton" class="btn btn-success" name="">Добавить</a>-->
+                        <input type="checkbox" class="btn-check" id="{{plant[0]}}" name="{{plant[0]}}"
+                               autocomplete="off">
+                        <label class="btn btn-outline-primary" for="{{plant[0]}}">Добавить</label>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <br>
+            {% endfor %}
+
+        </div>
+    </div>
+    <input type="submit"
+           class="btn btn-success m-2"
+           name="save" value="Сохранить">
+</form>
+</div>
+{% endblock %}

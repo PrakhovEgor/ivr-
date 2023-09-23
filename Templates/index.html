@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+
+
+{% block content %}
+<div class="container">
+<form method="POST" action="">
+    <div class="container p-2">
+        <input type="date" id="time"
+               name="timefrom" value={{time_from}}
+               min="2000-01-01" max="2030-12-31">
+        <input type="date" id="time"
+               name="timeto" value={{time_to}}
+               min="2000-01-01" max="2030-12-31">
+        <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
+        <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
+    </div>
+</form>
+
+<form method="POST" action="">
+
+    {% for day in day_list %}
+    <div class="row g-3 p-2">
+        <div class="col-auto">
+            <h1 class="display-6">{{ day[1].strftime("%B %d, %a") }}</h1>
+
+        </div>
+        <div class="col-auto">
+            <input type="submit" class="btn btn-success m-2" name={{day[0]}} value="+">
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary m-2 position-relative">
+                Полито:
+                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ day[2]}}
+                    <!--                <span class="visually-hidden">Тест</span>-->
+                </span>
+            </button>
+
+        </div>
+
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary m-2 position-relative">
+                Посажено:
+                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ day[3]}}
+                    <!--                <span class="visually-hidden">Тест</span>-->
+                </span>
+            </button>
+
+        </div>
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary m-2 position-relative">
+                Ухожено:
+                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ day[5]}}
+                    <!--                <span class="visually-hidden">Тест</span>-->
+                </span>
+            </button>
+
+        </div>
+
+        <div class="col-auto">
+            <button type="button" class="btn btn-primary m-2 position-relative">
+                Собрано:
+                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ day[4]}}
+                    <!--                <span class="visually-hidden">Тест</span>-->
+                </span>
+            </button>
+
+        </div>
+
+
+        <hr/>
+    </div>
+    {% endfor %}
+
+</form>
+</div>
+{% endblock %}

@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .cell {
+        width: calc(100% - 3px); /* Вычитаем 2px для учета границы */
+        height: calc(100% - 3px);
+        border: 1px solid #ccc;
+        position: relative;
+        background-image: url('/../static/bed.png');
+        border-radius: 10px;
+    }
+
+    .image {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+        border-radius: 10px;
+    }
+
+    .centered {
+        position: relative;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        user-select: none;
+        pointer-events: none;
+        color: #ff0000;
+        font-size: 100%;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
+
+
+</style>
+
+<div class="row g-3 align-items-start">
+    <div class="col-4">
+        <div id="toolbox">
+            <h2>Ваши растения:</h2>
+            <div style="height:600px;width:100%;overflow-y:scroll;">
+                <div class="row ">
+                    {% for plant in plants %}
+                    <div class="col d-flex align-items-stretch justify-content-center my-2">
+                        <div class="card" style="width: 15rem;">
+                            <img src="{{url_for('static', filename=plant[3])}}" class="card-img-top"
+                                 alt="Растение">
+                            <div class="card-body text-center ">
+                                <h5 class="card-title">{{ plant[1] }}</h5>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="row g-3 align-items-start">
+            <div class="col-auto">
+                <input type="submit" class="btn btn-danger" name="reset" value="Сбросить" id="reset">
+            </div>
+            <div class="col-auto">
+                <form action="" method="POST">
+                    <input type="submit" class="btn btn-success" name="save" value="Сохранить" id="save">
+                </form>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-6">
+        <div id="garden" style="background-image: url('/../static/trava4.jpg');"></div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const garden = document.getElementById("garden");
+        const params = decodeURIComponent(window.location.pathname).split("/");
+        let name = {{ name|tojson }};
+        let width = Number({{ width }});
+        let height = Number({{ height }});
+        let data = {{ data|tojson }};
+        let id = {{ id|tojson }};
+
+
+
+
+        garden.style.width = '100%';
+        garden.style.height = '100%';
+        garden.style.border = '1px solid #000';
+        garden.style.display = 'grid';
+        garden.style.gridTemplateColumns = 'repeat(' + width + ', 1fr)';
+        garden.style.gridGap = '5px';
+        garden.style.borderRadius = '10px';
+
+        const toolbox = document.getElementById("toolbox");
+
+
+        console.log('data', name, width, height, data);
+        var y = 0;
+        while (y < height) {
+            var x = 0;
+            while (x < width) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.id = "cell";
+                const cellSize = 100;
+                const width2 = cellSize * width;
+
+                garden.style.width = width2 + (width - 1) * 5 + 2 + 'px';
+                garden.style.height = '100%';
+
+                cell.style.width = cellSize + 'px';
+                cell.style.height = cellSize + 'px';
+
+                const img = data[`${y}_${x}`];
+                console.log(img);
+                if (img){
+                    const image = document.createElement("img");
+                    image.src = "http://127.0.0.1:5000/static/" + img;
+                    image.className = "image";
+                    cell.appendChild(image);
+                }
+
+                garden.appendChild(cell);
+                x += 1
+            }
+            y += 1
+        }
+
+        let draggedItem = null;
+
+        garden.addEventListener("dragstart", (event) => {
+            if (event.target.classList.contains("image")) {
+                const div = event.target.parentElement;
+                const child = div.children[1]
+                div.removeChild(child);
+
+                draggedItem = event.target;
+            }
+        });
+
+        garden.addEventListener("dragover", (event) => {
+            event.preventDefault();
+        });
+
+        garden.addEventListener("drop", (event) => {
+            if (draggedItem) {
+                const cell = event.target.closest(".cell");
+                if (cell) {
+                    if (!cell.querySelector(".image")) {
+                        cell.appendChild(draggedItem);
+                        draggedItem = null;
+                    }
+                }
+            }
+        });
+
+        toolbox.addEventListener("dragstart", (event) => {
+            if (event.target.classList.contains("toolbox-image")) {
+                event.dataTransfer.setData("text/plain", event.target.src);
+            }
+        });
+
+        garden.addEventListener("dragover", (event) => {
+            event.preventDefault();
+        });
+
+        function deleteImage(image) {
+            image.parentNode.removeChild(image);
+        }
+
+        garden.addEventListener('dragend', function (e) {
+            if (draggedItem) {
+                const gardenRect = garden.getBoundingClientRect();
+                const imageRect = draggedItem.getBoundingClientRect();
+
+                if (
+                    !(imageRect.left < gardenRect.left ||
+                        imageRect.right > gardenRect.right ||
+                        imageRect.top < gardenRect.top ||
+                        imageRect.bottom > gardenRect.bottom)
+                ) {
+                    deleteImage(draggedItem);
+                    draggedItem = null;
+                }
+            }
+        });
+
+        garden.addEventListener("drop", (event) => {
+            const imageUrl = event.dataTransfer.getData("text/plain");
+            if (imageUrl) {
+                const cell = event.target.closest(".cell");
+                if (cell && !cell.querySelector(".image")) {
+                    const image = document.createElement("img");
+                    image.src = imageUrl;
+                    image.className = "image";
+                    cell.appendChild(image);
+                    console.log(imageUrl);
+                }
+            }
+        });
+
+        reset.addEventListener("click", (event) => {
+            const parentElement = document.getElementById('garden');
+            const divElements = parentElement.querySelectorAll('div');
+
+            divElements.forEach(function (div) {
+                div.innerHTML = "";
+            });
+            data = '';
+        });
+
+        save.addEventListener("click", (event) => {
+            const cells = document.querySelectorAll('.cell');
+            var data_ = {'name': name, 'height': height, 'width': width, 'id': id};
+            console.log(cells);
+
+
+            var y = 0;
+            while (y < height) {
+                var x = 0;
+                while (x < width) {
+
+                    if (cells[width * y + x].children.length > 0) {
+                        const img = cells[4 * y + x].children[0];
+                        const url = decodeURIComponent(img.src);
+                        const l = url.split('/');
+                        const f = url.split('/')[l.length - 2];
+                        const s = url.split('/')[l.length - 1];
+                        if (f.includes("@")){
+                            data_[`${y}_${x}`] = f + "/" + s;
+                        } else{
+                            data_[`${y}_${x}`] = s;
+                        }
+                        console.log(data_[`${y}_${x}`])
+
+                    } else {
+                        data_[`${y}_${x}`] = "";
+                    }
+                    x += 1;
+                }
+                y += 1;
+            }
+            console.log(data_)
+
+            $.ajax({
+                url: '/process',
+                type: 'POST',
+                data: data_,
+                error: function (error) {
+                    console.log(error);
+                }
+            });
+
+            // window.location.href ="http://127.0.0.1:5000/constructor";
+        });
+
+        const cells = document.querySelectorAll('.cell');
+
+        cells.forEach(cell => {
+
+            cell.addEventListener('mouseenter', () => {
+                const img = cell.querySelectorAll('img')[0]
+                if (img) {
+                    const div = document.createElement('div');
+                    const url = decodeURIComponent(img.src);
+                    const name = url.split('/').reverse()[0].split('.')[0].split(" ").slice(0, 2).join(" ");
+                    const textNode = document.createTextNode(name);
+
+
+                    div.className = "centered";
+                    div.appendChild(textNode);
+
+                    cell.appendChild(div);
+
+                    // img.src = '/../static/trava4.jpg';
+                }
+            });
+
+            cell.addEventListener('mouseleave', () => {
+                const img = cell.querySelectorAll('img')[0]
+
+
+                if (img) {
+                    const div = cell.children[1];
+                    cell.removeChild(div);
+                }
+            });
+        });
+
+
+    });
+</script>
+
+
+{% endblock %}

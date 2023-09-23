@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+<div class="row g-3 align-items-center">
+
+    <div class="col-auto">
+        <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="200"
+             width="auto">
+    </div>
+    <div class="col-auto">
+        <h1 class="display-5">{{ name }}</h1>
+    </div>
+    <div class="col-auto">
+        <input type="submit" class="btn btn-primary" name="edit" value="Редактировать">
+    </div>
+     <div class="col-auto">
+        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+    </div>
+    <div class="col-auto">
+        <input type="submit" class="btn btn-danger" name="reset" value="Сбросить">
+    </div>
+
+    <div class="col-auto">
+        <input type="submit" class="btn btn-primary" name="history" value="История">
+    </div>
+
+
+</div>
+<div class="col-auto">
+        <table class="table table-striped-columns">
+            <tbody>
+            {% for k, v in description.items() %}
+            <tr>
+                <td>{{ k }}</td>
+                <td>{{ v }}</td>
+            </tr>
+            {% endfor %}
+
+            </tbody>
+        </table>
+    </div>
+</form>
+</div>
+{% endblock %}

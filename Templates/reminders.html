@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+    <input type="submit"
+           class="btn btn-success m-2"
+           name="make" value="Создать напоминание">
+
+    {% for rem in data %}
+    <h1 class="display-6">{{rem}}</h1>
+    <input type="submit"
+           class="btn btn-danger m-2"
+           name="delete_{{rem['id']}}" value="Удалить">
+    {% endfor %}
+</form>
+</div>
+{% endblock %}

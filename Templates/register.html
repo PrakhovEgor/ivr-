@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<div class="container-md">
+    <form action="" method="post">
+        <div class="d-flex flex-column align-items-center">
+            {{ form.hidden_tag() }}
+            <div class="container p-2">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(placeholder="name@example.com", type="email", class="form-control") }}
+            </div>
+            <div class="container p-2">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(type="password", class="form-control", placeholder="Пароль") }}
+
+            </div>
+
+            <div class="container p-2">
+                {{ form.password_confirmation.label(class="form-label") }}
+                {{ form.password_confirmation(type="password", class="form-control", placeholder="Пароль") }}
+            </div>
+            {% if password_error %}
+                <div class="alert alert-danger" role="alert">
+                        {{ password_error[0]['messages'][0] }}
+                </div>
+            {% endif %}
+            {% if email_error %}
+                <div class="alert alert-danger" role="alert">
+                        Пользователь с такой электронной почтой уже существует
+                </div>
+            {% endif %}
+
+            {{ form.submit(type="submit", class="w-60 btn btn-lg btn-success") }}
+            <a class="link-success" href="/login/">Войти</a>
+        </div>
+
+    </form>
+</div>
+
+<h3>{{ debug }}</h3>
+</div>
+
+{% endblock %}

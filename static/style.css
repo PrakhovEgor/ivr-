@@ -1,0 +1,52 @@
+hr {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.switch {
+  display: inline-block;
+  position: relative;
+  width: 60px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #dcdcdc;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.switch .toggle-input {
+  display: none;
+}
+
+/* Стили для красного поля переключателя */
+.switch .toggle-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60px;
+  height: 30px;
+  border-radius: 15px;
+  background-color: #40a800; /* Задайте красный цвет */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+  content: "";
+}
+
+/* Стили для зелёного ползунка переключателя */
+.switch .toggle-label::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 26px;
+  height: 26px;
+  background-color: #ffffff; /* Задайте зелёный цвет */
+  border-radius: 50%;
+  transition: transform 0.3s ease;
+}
+
+.switch .toggle-input:checked + .toggle-label::after {
+  transform: translateX(30px);
+}

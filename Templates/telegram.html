@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+    <div class="alert alert-primary" role="alert">
+        Для того, чтобы создавать напоминания, Вы должны зарегистрировать хотя бы один telegram аккаунт.<br>
+        Чтобы это сделать напишите боту: <a href=" https://t.me/kachalka228_bot?start=100&text=/add">Telegram bot</a>
+
+    </div>
+
+    <h1 class="display-6">Ваши доступные аккаунты для отправки напоминаний:</h1>
+
+    {% for i in range(accounts |length) %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Ник в telegram</th>
+            <th scope="col"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <th scope="row">{{i + 1}}</th>
+            <td>{{accounts[i][0]}}</td>
+            <td><input type="submit" class="btn btn-danger" name="delete" value="Удалить"></td>
+        </tr>
+
+        </tbody>
+    </table>
+
+    {% endfor %}
+
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <input type="submit" class="btn btn-success" name="add" value="Добавить">
+        </div>
+        <div class="col-auto">
+            <input type="submit" class="btn btn-primary" name="reload" value="Обновить">
+        </div>
+    </div>
+
+
+</form>
+</div>
+{% endblock %}

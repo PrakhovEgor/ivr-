@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+    <h1 class="display-4">Создание напоминаний</h1>
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <label>Получатели:</label>
+        </div>
+        <div class="col-auto">
+            {% for account in accounts %}
+            <label><input type="checkbox" name="accounts" value={{account[1]}} checked>{{ account[0] }}</label><br>
+            {% endfor %}
+        </div>
+    </div>
+
+
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <label>Название:</label>
+        </div>
+        <div class="col-auto">
+            <input type="text" class="form-control" name="name">
+        </div>
+    </div>
+    <div style="width:100%;overflow:hidden;">
+
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label">Список растений:</label>
+            </div>
+        </div>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
+            </div>
+            <div class="col-auto">
+                <input type="submit" class="btn btn-success" name="search" value="Искать">
+            </div>
+        </div>
+
+        <div style="height:200px;width:50%;overflow-y:scroll;">
+            {% for plant in plants %}
+            <label><input type="checkbox" name={{plant[0]}} value={{plant[1]}}>{{ plant[1] }}</label><br>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <label>Тип напоминания:</label>
+        </div>
+        <div class="col-auto">
+            <select class="form-select" aria-label="Default select example"
+                    name="m_type">
+                <option value="-" selected>-</option>
+                <option value="watering">Полив</option>
+                <option value="planting">Посадка</option>
+                <option value="harvesting">Сбор урожая</option>
+                <option value="tending">Уход</option>
+            </select>
+        </div>
+    </div>
+
+    <br>
+    <p>Начальная дата:</p>
+    <input
+            type="datetime-local"
+            id="start_date"
+            name="start_date"
+            value="{{cur_date + timedelta}}T{{cur_time.split(':')[0]}}:00"
+            min="{{cur_date}}T{{cur_time.split(':')[0]+'1'}}:00"
+            max="2030-06-14T00:00"
+    />
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <label class="col-form-label">Периодичность: Каждые(ый)</label>
+        </div>
+        <div class="col-auto">
+            <input value="1" min="0" max="100000" type="number" class="form-control"
+                   name="period">
+        </div>
+        <div class="col-auto">
+            <select class="form-select" aria-label="Default select example"
+                    name="period_type">
+                <option value="hour">Час</option>
+                <option value="day" selected>День</option>
+                <option value="month">Месяц</option>
+                <option value="year">Год</option>
+            </select>
+        </div>
+        <div class="col-auto">
+            При отсутствии периодичности поставьте '0'
+        </div>
+    </div>
+
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <label class="col-form-label">Комментарий для себя:</label>
+        </div>
+        <div class="col-auto">
+            <textarea class="form-control" name="comment"></textarea>
+        </div>
+    </div>
+
+    <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
+
+
+</form>
+</div>
+
+{% endblock %}

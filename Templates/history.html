@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="POST" enctype="multipart/form-data">
+    {% for i in history %}
+
+    <div class="row g-3 p-2">
+        {% if i[6] != None %}
+        <div class="col-auto">
+            <h1 class="display-6">{{ i[6].strftime("%B %d, %a") }}</h1>
+        </div>
+        <div class="col-auto">
+            <h1 class="display-6">{{ i[2] }}</h1>
+        </div>
+        {% endif %}
+
+
+    </div>
+    <div/>
+    {% endfor %}
+</form>
+</div>
+
+{% endblock %}

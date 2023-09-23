@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+<form action="" method="post">
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <h1 class="display-6">Ваши растения:</h1>
+        </div>
+        <div class="col-auto">
+            <input type="submit"
+                   class="btn btn-success m-2"
+                   name="add" value="Добавить">
+        </div>
+    </div>
+
+    <div class="row ">
+
+
+        {% for plant in user_plants %}
+        <div class="col d-flex align-items-stretch justify-content-center my-2">
+            <div class="card" style="width: 18rem;">
+
+
+                <a href='/plant/{{plant[0]}}'><img src="{{url_for('static', filename=plant[3])}}" class="card-img-top" alt="Растение"></a>
+                <div class="card-body text-center ">
+                    <h5><a href='/plant/{{plant[0]}}' class="link-dark link-offset-2 link-underline link-underline-opacity-0">{{ plant[1] }}</a></h5>
+<!--                    <a href="#" class="btn btn-primary">Go somewhere</a>-->
+                </div>
+
+            </div>
+        </div>
+        <br>
+
+        {% endfor %}
+
+    </div>
+</form>
+</div>
+
+{% endblock %}
