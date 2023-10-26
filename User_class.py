@@ -49,12 +49,6 @@ class User:
         self.mysql.connection.commit()
         cursor.close()
 
-        cursor = self.mysql.connection.cursor()
-        cursor.execute(
-            f" CREATE TABLE `{self.get_id_by_email(email)}` (`id` INT NOT NULL AUTO_INCREMENT , `plant_id` INT NOT NULL , `m_type` TEXT NULL , `count` INT NULL , `weight` FLOAT NULL, `addition` TEXT NULL , `date` DATE NOT NULL , PRIMARY KEY (`id`)) ENGINE = InnoDB;")
-        self.mysql.connection.commit()
-        cursor.close()
-
     def get_id_by_email(self, email):  # Возвращает id юзера по почте
         cur = self.mysql.connection.cursor()
         cur.execute("SELECT id FROM auth_data WHERE email=%s", [email])
@@ -109,25 +103,25 @@ class User:
     def get_user_actions(self, start_date, end_date):
         cur = self.mysql.connection.cursor()
         cur.execute(
-            f"SELECT plant_id, m_type, date FROM `{self.id}` WHERE date >= '{start_date[1]}' AND date <= '{end_date[1]}'")
+            f"SELECT plant_id, m_type, date FROM user_data WHERE user_id = {self.id} AND date >= '{start_date[1]}' AND date <= '{end_date[1]}'")
         res = cur.fetchall()
         cur.close()
         return res
 
-    def save_action(self, plants_lst, type_act):
+    def save_action(self, plant_id, type_act, addition):
         cursor = self.mysql.connection.cursor()
-        for i in plants_lst:
-            cursor.execute(
-                f" INSERT INTO `{self.id}`(plant_id, m_type, date, count, weight) VALUES(%s, %s, %s, %s, %s)",
-                (i[0], type_act, self.parse_date_string(session.get("date_to_edit")), i[1], i[2]))
-            self.mysql.connection.commit()
+
+        cursor.execute(
+            f" INSERT INTO user_data(user_id, plant_id, m_type, date, addition) VALUES(%s, %s, %s, %s, %s)",
+            (self.id, plant_id, type_act, self.parse_date_string(session.get("date_to_edit")), json.dumps(addition)))
+        self.mysql.connection.commit()
         cursor.close()
         return
 
     def get_user_plants_adds(self):
         cur = self.mysql.connection.cursor()
         cur.execute(
-            f"SELECT plant_id, addition FROM `{self.id}` WHERE m_type='addition'")
+            f"SELECT plant_id, addition FROM user_data WHERE user_id = {self.id} AND m_type='addition'")
         res = cur.fetchall()
         cur.close()
 
@@ -136,33 +130,51 @@ class User:
     def save_custom_adds(self, plant_id, d):
         cur = self.mysql.connection.cursor()
         cur.execute(
-            f"INSERT INTO `{self.id}`(plant_id, m_type, addition) VALUES(%s, %s, %s)",
-            (plant_id, 'addition', d))
+            f"INSERT INTO user_data(user_id, plant_id, m_type, addition) VALUES(%s, %s, %s, %s)",
+            (self.id, plant_id, 'addition', d))
         self.mysql.connection.commit()
         cur.close()
         return
 
-    def delete_plant_from_user(self, plant_id, name, m_type=False):
+    def delete_plant_from_user(self, plant_id, name, filename=None, m_type=False):
         if m_type:
             cur = self.mysql.connection.cursor()
             cur.execute(
-                f"DELETE FROM `{session.get('id')}` WHERE plant_id={plant_id} AND m_type='addition'")
+                f"DELETE FROM user_data WHERE user_id = {self.id} AND plant_id={plant_id} AND m_type='addition'")
             self.mysql.connection.commit()
             cur.close()
         else:
             cur = self.mysql.connection.cursor()
-            cur.execute(f"DELETE FROM `{session.get('id')}` WHERE plant_id={plant_id}")
+            cur.execute(f"DELETE FROM user_data WHERE user_id = {self.id} AND plant_id={plant_id}")
             self.mysql.connection.commit()
             cur.close()
 
         if os.path.isdir('static/' + session.get('email')) and name + '.jpg' in os.listdir(f"static/{session.get('email')}"):
             os.remove(os.path.join(f"static/{session.get('email')}", name + '.jpg'))
+
+
+        cur = self.mysql.connection.cursor()
+        cur.execute(
+            f"SELECT * FROM garden_beds WHERE user_id = %s", [self.id])
+        beds = cur.fetchall()
+
+        for bed in beds:
+            print(json.loads(bed[3]))
+            new_data = json.loads(bed[3])
+            for k, v in new_data.items():
+                if v == filename:
+                    new_data[k] = ""
+            print([new_data, bed[0]])
+            cur.execute("UPDATE garden_beds SET data = %s WHERE id = %s", [json.dumps(new_data), bed[0]])
+            self.mysql.connection.commit()
+        cur.close()
+
         return
 
-    def get_user_tg(self, id=False):
+    def get_user_tg(self):
         email = self.email
         cur = self.mysql.connection.cursor()
-        cur.execute(f"SELECT name{', telegram_id' * int(id)} FROM telegram_data WHERE email = %s", [email])
+        cur.execute(f"SELECT name, telegram_id FROM telegram_data WHERE email = %s", [email])
         res = cur.fetchall()
         cur.close()
         return res
@@ -177,7 +189,6 @@ class User:
     def save_bed(self, data):
         name = data['name']
         data_id = data['id']
-        print('id', data_id)
         if not data_id:
             cur = self.mysql.connection.cursor()
             cur.execute(
@@ -188,7 +199,6 @@ class User:
         else:
             data_id = data['id']
             data = json.dumps(data)
-            print(data_id, self.id, name, data)
             cur = self.mysql.connection.cursor()
             cur.execute(f"UPDATE garden_beds SET user_id = %s, name = %s, data = %s WHERE id = %s",
                         [self.id, name, data, data_id]
@@ -196,7 +206,6 @@ class User:
 
             self.mysql.connection.commit()
             cur.close()
-            print('success')
         return
 
     def get_beds(self, id=None):
@@ -207,13 +216,27 @@ class User:
         cur.execute(f"SELECT * FROM garden_beds WHERE user_id = %s {query}", [self.id])
         res = cur.fetchall()
         cur.close()
-        print(res)
         return res
 
     def delete_bed(self, id):
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"DELETE FROM garden_beds WHERE id={id}")
+        self.mysql.connection.commit()
+        cur.close()
+        return
+
+    def get_day_history(self, day):
+        cur = self.mysql.connection.cursor()
+        cur.execute(f"SELECT * FROM user_data WHERE user_id = {self.id} AND date = %s", [datetime.datetime.strptime(day, "%Y-%m-%d")])
+        res = cur.fetchall()
+        cur.close()
+        return res
+
+    def delete_tg(self, user_id):
+        cur = self.mysql.connection.cursor()
+        cur.execute(
+            f"DELETE FROM telegram_data WHERE telegram_id={user_id}")
         self.mysql.connection.commit()
         cur.close()
         return

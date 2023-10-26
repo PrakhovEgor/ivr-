@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+
+{% block content %}
+<div class="d-flex flex-column align-items-center">
+    <form action="" method="POST">
+        <div class="container p-2">
+            <input type="submit"
+                   class="btn btn-{{['outline-', '', 'outline-', 'outline-', 'outline-'][status]}}success m-2"
+                   name="watering" value="Полив">
+            <input type="submit"
+                   class="btn btn-{{['outline-', 'outline-', '', 'outline-', 'outline-'][status]}}success m-2"
+                   name="planting" value="Посадка">
+            <input type="submit"
+                   class="btn btn-{{['outline-', 'outline-', 'outline-', '', 'outline-'][status]}}success m-2"
+                   name="tending" value="Уход">
+            <input type="submit"
+                   class="btn btn-{{['outline-', 'outline-', 'outline-', 'outline-', ''][status]}}success m-2"
+                   name="harvesting" value="Сбор урожая">
+        </div>
+    </form>
+    {% for i in history %}
+    <div class="container mt-4">
+        <div class="row g-3 align-items-center border rounded p-3">
+            {% if i[-1] != None %}
+            <div class="col-auto">
+                <h1 class="display-6">{{ i[-1] }}</h1>
+            </div>
+            <div class="col-auto">
+                <h1 class="display-6">{{ i[2] }}</h1>
+            </div>
+
+            {% if i[3]["count"] %}
+            <div class="col-auto">
+                <label class="fw-bold">Кол-во:</label>
+                <label>{{i[3]['count']}}</label>
+            </div>
+            {% endif %}
+
+            {% if i[3]["weight"] %}
+            <div class="col-auto">
+                <label class="fw-bold">Вес в кг:</label>
+                <label>{{i[3]["weight"]}}</label>
+            </div>
+
+            {% endif %}
+
+            {% if i[3]["img_src"] %}
+            <div class="col-auto">
+                <img src="/{{ i[3]['img_src']}}" class="img rounded" alt="Растение" height="200">
+            </div>
+            {% endif %}
+            {% endif %}
+
+
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

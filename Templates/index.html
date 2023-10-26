@@ -1,81 +1,65 @@
 {% extends "base.html" %}
 
 
-
 {% block content %}
-<div class="container">
-<form method="POST" action="">
-    <div class="container p-2">
-        <input type="date" id="time"
-               name="timefrom" value={{time_from}}
-               min="2000-01-01" max="2030-12-31">
-        <input type="date" id="time"
-               name="timeto" value={{time_to}}
-               min="2000-01-01" max="2030-12-31">
-        <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
-        <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
-    </div>
-</form>
+<style>
+    .test {
+        padding: 0;
+        border: none;
+        background: none;
+    }
+</style>
 
-<form method="POST" action="">
+<div class="d-flex justify-content-center">
+    <form method="POST" action="">
+        <div class="container p-2">
+            <input type="date" id="time"
+                   name="timefrom" value={{time_from}}
+                   min="2000-01-01" max="2030-12-31">
+            <input type="date" id="time"
+                   name="timeto" value={{time_to}}
+                   min="2000-01-01" max="2030-12-31">
+            <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
+            <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
+        </div>
 
-    {% for day in day_list %}
-    <div class="row g-3 p-2">
-        <div class="col-auto">
+
+        {% for day in day_list %}
+        <div class="d-flex gap-2 justify-content-center py-5">
+
             <h1 class="display-6">{{ day[1].strftime("%B %d, %a") }}</h1>
 
-        </div>
-        <div class="col-auto">
+
             <input type="submit" class="btn btn-success m-2" name={{day[0]}} value="+">
-        </div>
-        <div class="col-auto">
-            <button type="button" class="btn btn-primary m-2 position-relative">
-                Полито:
-                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ day[2]}}
-                    <!--                <span class="visually-hidden">Тест</span>-->
-                </span>
+
+            <button type="submit" name="watering" class="test" value={{day[1]}}>
+            <span class="badge d-flex align-items-center p-2 text-primary-emphasis bg-primary-subtle   rounded-pill">
+                <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-watering-50.png" alt="">{{ day[2] }}
+            </span>
+            </button>
+
+            <button type="submit" name="planting" class="test" value={{day[1]}}>
+            <span class="badge d-flex align-items-center p-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
+                <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-planting-50.png" alt="">{{ day[3] }}
+            </span>
+            </button>
+
+            <button type="submit" name="tending" class="test" value={{day[1]}}>
+            <span class="badge d-flex align-items-center p-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
+                <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-plant-care-50.png" alt="">{{ day[5] }}
+            </span>
+            </button>
+
+            <button type="submit" name="harvesting" class="test" value={{day[1]}}>
+              <span class="badge d-flex align-items-center p-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-pill">
+                <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-harvesting-32.png" alt="">
+                {{ day[4] }}
+              </span>
             </button>
 
         </div>
+        {% endfor %}
 
-        <div class="col-auto">
-            <button type="button" class="btn btn-primary m-2 position-relative">
-                Посажено:
-                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ day[3]}}
-                    <!--                <span class="visually-hidden">Тест</span>-->
-                </span>
-            </button>
-
-        </div>
-        <div class="col-auto">
-            <button type="button" class="btn btn-primary m-2 position-relative">
-                Ухожено:
-                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ day[5]}}
-                    <!--                <span class="visually-hidden">Тест</span>-->
-                </span>
-            </button>
-
-        </div>
-
-        <div class="col-auto">
-            <button type="button" class="btn btn-primary m-2 position-relative">
-                Собрано:
-                <span class="position-absolute top-50 start-100 translate-middle badge rounded-pill bg-danger">
-                {{ day[4]}}
-                    <!--                <span class="visually-hidden">Тест</span>-->
-                </span>
-            </button>
-
-        </div>
-
-
-        <hr/>
-    </div>
-    {% endfor %}
-
-</form>
+    </form>
 </div>
 {% endblock %}

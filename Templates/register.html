@@ -27,7 +27,13 @@
             {% endif %}
             {% if email_error %}
                 <div class="alert alert-danger" role="alert">
-                        Пользователь с такой электронной почтой уже существует
+                        Пользователь с такой электронной почтой уже существует.
+                </div>
+            {% endif %}
+
+            {% if space_error %}
+                <div class="alert alert-danger" role="alert">
+                        Пароль не должен содержать пробелов.
                 </div>
             {% endif %}
 

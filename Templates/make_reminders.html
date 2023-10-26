@@ -13,6 +13,13 @@
             <label><input type="checkbox" name="accounts" value={{account[1]}} checked>{{ account[0] }}</label><br>
             {% endfor %}
         </div>
+        {% if accs_error %}
+        <div class="col-auto">
+            <div class="alert alert-danger" role="alert">
+                        {{ accs_error}}
+            </div>
+        </div>
+        {% endif %}
     </div>
 
 
@@ -23,6 +30,13 @@
         <div class="col-auto">
             <input type="text" class="form-control" name="name">
         </div>
+        {% if name_error %}
+        <div class="col-auto">
+            <div class="alert alert-danger" role="alert">
+                        {{ name_error}}
+            </div>
+        </div>
+        {% endif %}
     </div>
     <div style="width:100%;overflow:hidden;">
 
@@ -69,7 +83,7 @@
             id="start_date"
             name="start_date"
             value="{{cur_date + timedelta}}T{{cur_time.split(':')[0]}}:00"
-            min="{{cur_date}}T{{cur_time.split(':')[0]+'1'}}:00"
+            min="{{cur_date}}T{{cur_time.split(':')[0]}}:00"
             max="2030-06-14T00:00"
     />
     <div class="row g-3 align-items-center">

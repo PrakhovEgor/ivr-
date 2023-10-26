@@ -3,9 +3,9 @@
 
 
 {% block content %}
-<div class="container">
+
 <div class="d-flex flex-column align-items-center">
-    <form action="" method="post">
+    <form action="" method="POST" enctype="multipart/form-data">
         <div class="container p-2">
             <h1 class="display-6">Чем Вы занимались сегодня?</h1>
 
@@ -122,6 +122,13 @@
                         <input value="1" min="1" max="1000" type="number" id="typeNumber" class="form-control"
                                name="{{plant[0]|string +'_count'}}">
                     </div>
+                    <div class="col-auto">
+                        <label>Фотография(необязательно):</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                    </div>
+
                 </div>
 
 
@@ -187,6 +194,12 @@
                             <option value="transplant">Пересадка</option>
                             <option value="pruning">Обрезка</option>
                         </select>
+                    </div>
+                    <div class="col-auto">
+                        <label>Фотография(необязательно):</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
                     </div>
 
                 </div>
@@ -264,6 +277,12 @@
                     <div class="col-auto">
                         <label>Кг</label>
                     </div>
+                    <div class="col-auto">
+                        <label>Фотография(необязательно):</label>
+                    </div>
+                    <div class="col-auto">
+                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                    </div>
 
                 </div>
 
@@ -279,6 +298,6 @@
 
     </form>
 </div>
-</div>
+
 
 {% endblock %}

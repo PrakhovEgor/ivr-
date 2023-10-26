@@ -1,4 +1,4 @@
-
+import datetime
 import json
 
 
@@ -10,50 +10,74 @@ class Plants:
 
     def get_user_plants_id(self):
         cur = self.mysql.connection.cursor()
-        cur.execute(f"SELECT plant_id FROM `{self.id}` WHERE m_type='own'")
+        cur.execute(f"SELECT plant_id FROM user_data WHERE user_id = {self.id} AND m_type='own'")
         res = cur.fetchall()
         cur.close()
         return [x[0] for x in res]
 
-    def get_plants_idname(self, search='', id=None, img=False):
-        if id == None:
+    def get_plants_idname(self, search='', id=None, img=False, include_users=False, include_date=False):
+        where_clause = ''
+        if include_users:
+            id = id or self.get_user_plants_id()
+        else:
+            where_clause = "WHERE custom IS NULL"
+        if id is None:
             query = ""
         elif len(id) == 0:
             return []
+        elif type(id) == int or type(id) == str:
+            query = f'WHERE id = {id}'
+            where_clause = ""
+
         elif len(id) == 1:
             if type(id) == set:
                 id = id.pop()
             elif type(id) == list:
                 id = id[0]
-            query = 'WHERE id = ' + str(id)
+
+            query = f'WHERE id = {id}'
+            where_clause = ""
         else:
-            query = 'WHERE id IN ' + str(tuple(id))
+            id_tuple = tuple(id)
+            query = f'WHERE id IN {id_tuple}'
+            where_clause = ""
+
+        sql_query = f"SELECT * FROM plants {query}{where_clause}"
         cur = self.mysql.connection.cursor()
-        cur.execute(f"SELECT * FROM plants {query}")
+        cur.execute(sql_query)
         res = cur.fetchall()
         cur.close()
-        if search != '':
-            new_plants = []
-            for plant in res:
-                if search.strip().lower() in plant[1].strip().lower():
-                    new_plants.append([plant[0], plant[1], plant[2]])
-            return new_plants
-        elif img == True:
+
+        if search:
+            new_plants = [plant for plant in res if search.strip().lower() in plant[1].strip().lower()]
+            res = new_plants.copy()
+            # return [[plant[0], plant[1], plant[2]] for plant in new_plants]
+        if img:
             new_res = []
             for i in res:
                 i = list(i)
-                if i[3] == None or i[3] == 0:
-                    new_res.append(i[:3] + [i[1] + '.jpg'])
-                else:
-                    new_res.append(i[:3] + [self.email + '/' + i[1] + '.jpg'])
-            return new_res
+                img_path = i[1] + '.jpg' if i[3] is None or i[3] == 0 else f'{self.email}/{i[1]}.jpg'
+                new_res.append(i + [img_path])
+            res = new_res.copy()
+        if include_date:
+            sql_query = f"SELECT * FROM user_data WHERE user_id = {self.id} AND m_type='own'"
+            cur = self.mysql.connection.cursor()
+            cur.execute(sql_query)
+            temp = cur.fetchall()
+            cur.close()
+            d = {}
+
+            for i in temp:
+                d[i[1]] = i[4]
+            for i in range(len(res)):
+                res[i].append(d[res[i][0]])
         return res
 
     def save_plants_to_user(self, plants_ids):
         cursor = self.mysql.connection.cursor()
         for id in plants_ids:
-            cursor.execute(f" INSERT INTO `{self.id}`(plant_id, m_type) VALUES(%s,%s)",
-                           (id, "own"))
+            cursor.execute(f" INSERT INTO user_data(user_id, plant_id, m_type, date) VALUES(%s, %s, %s, %s)",
+                           (self.id, id, "own", datetime.datetime.now().date()))
             self.mysql.connection.commit()
         cursor.close()
         return
@@ -73,8 +97,8 @@ class Plants:
         cursor.close()
 
         cursor = self.mysql.connection.cursor()
-        cursor.execute(f"INSERT INTO `{self.id}`(plant_id, m_type) VALUES(%s, %s)",
-                       (self.get_id_by_plantname(name), 'own'))
+        cursor.execute(f"INSERT INTO user_data(user_id, plant_id, m_type) VALUES(%s, %s, %s)",
+                       (self.id, self.get_id_by_plantname(name), 'own'))
         self.mysql.connection.commit()
         cursor.close()
         return
@@ -90,31 +114,51 @@ class Plants:
     def get_user_plants_adds(self):
         cur = self.mysql.connection.cursor()
         cur.execute(
-            f"SELECT plant_id, addition FROM `{self.id}` WHERE m_type='addition'")
+            f"SELECT plant_id, addition FROM user_data WHERE user_id = {self.id} AND m_type='addition'")
         res = cur.fetchall()
         cur.close()
 
         return dict(res)
 
-    def save_custom_adds(self, plant_id, d):
-        cur = self.mysql.connection.cursor()
-        cur.execute(
-            f"INSERT INTO `{self.id}`(plant_id, m_type, addition) VALUES(%s, %s, %s)",
-            (plant_id, 'addition', d))
-        self.mysql.connection.commit()
-        cur.close()
-        return
 
-    def get_plant_history(self, plant_id):
-        avail = ['watering', 'harvesting', 'planting',
-                 'tending_weeding', 'tending_fertilizing', 'tending_pest_control',
-                 'tending_transplant', 'tending_pruning']
+    def get_plant_history(self, plant_id, m_type='all'):
+        plant_id = plant_id
+        if m_type == "all":
+            avail = ['watering', 'harvesting', 'planting_seeds', 'planting_sprouts',
+                     'tending_weeding', 'tending_fertilizing', 'tending_pest_control',
+                     'tending_transplant', 'tending_pruning']
+        elif m_type == "watering":
+            avail = ['watering', 'watering']
+        elif m_type == "planting":
+            avail = ['planting_seeds', 'planting_sprouts']
+        elif m_type == "tending":
+            avail = ['tending_weeding', 'tending_fertilizing', 'tending_pest_control',
+                     'tending_transplant', 'tending_pruning']
+        elif m_type == "harvesting":
+            avail = ['harvesting', 'harvesting']
+
+        d = {
+            'watering': 'Полив',
+            'harvesting': 'Сбор урожая',
+            'planting_seeds': 'Посев семян',
+            'planting_sprouts': 'Посадка ростков',
+            'tending_weeding': 'Прополка',
+            'tending_fertilizing': 'Внесение удобрений',
+            'tending_pest_control': 'Борьба с вредителями',
+            'tending_transplant': 'Пересадка',
+            'tending_pruning': 'Подрезка'
+        }
+
         cur = self.mysql.connection.cursor()
         cur.execute(
-            f"SELECT * FROM `{self.id}` WHERE plant_id={plant_id} AND m_type IN {tuple(avail)}")
+            f"SELECT * FROM user_data WHERE user_id = {self.id} AND plant_id={plant_id} AND m_type IN {tuple(avail)}")
         res = cur.fetchall()
         cur.close()
+        res = [list(x) for x in res]
 
+        for i in range(len(res)):
+            res[i][-3] = json.loads(res[i][-3])
+            res[i][2] = d.get(res[i][2])
         return res
 
     def get_user_tg(self, id=False):
@@ -124,3 +168,6 @@ class Plants:
         res = cur.fetchall()
         cur.close()
         return res
+
+
+

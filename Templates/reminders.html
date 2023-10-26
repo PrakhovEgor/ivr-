@@ -2,17 +2,121 @@
 
 {% block content %}
 <div class="container">
-<form action="" method="post">
-    <input type="submit"
-           class="btn btn-success m-2"
-           name="make" value="Создать напоминание">
+    <form action="" method="post">
+        {% if not accs %}
+        <div class="alert alert-primary" role="alert">
+            Для того, чтобы создавать напоминания, Вы должны зарегистрировать хотя бы один telegram аккаунт.<br>
+            Чтобы это сделать напишите боту: <a href=" https://t.me/kachalka228_bot?start=100&text=/add">Telegram
+            bot</a>
+        </div>
+        <input type="submit"
+               class="btn btn-success m-2"
+               name="make" value="Создать напоминание" disabled>
+        {% else %}
+        <input type="submit"
+               class="btn btn-success m-2"
+               name="make" value="Создать напоминание">
+
+        {% for rem in data %}
+<div class="card mb-3">
+    <div class="card-header">
+        <h5 class="card-title">{{ rem["name"] }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <strong>Тип действия:</strong>
+            </div>
+            <div class="col-md-9">
+                {{ rem["m_type"] }}
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <strong>Растения:</strong>
+            </div>
+            <div class="col-md-9">
+                <div class="dropdown">
+                    {% if rem['plants'] %}
+                    <button class="btn btn-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Список
+                    </button>
+                    {% else %}
+                    <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" disabled>
+                        Пустой список
+                    </button>
+                    {% endif %}
+                    <ul class="dropdown-menu">
+                        {% for plant in rem["plants"] %}
+                            <li>{{ plant }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <strong>Периодичность:</strong>
+            </div>
+            <div class="col-md-9">
+                {{ rem["period"] }}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-3">
+                <strong>До следующего напоминания осталось:</strong>
+            </div>
+            <div class="col-md-9">
+                <div id="countdown_{{ rem['id'] }}"></div>
+            </div>
+        </div>
+        {% if rem["comment"] %}
+    <div class="row mb-3">
+            <div class="col-md-3">
+                <strong>Ваш комментарий:</strong>
+            </div>
+            <div class="col-md-9">
+                {{ rem["comment"] }}
+            </div>
+        </div>
+    {% endif %}
+    </div>
+    <div class="card-footer">
+            <button type="submit" class="btn btn-danger" name="delete_{{rem['id']}}">Удалить</button>
+    </div>
+
+</div>
+{% endfor %}
+
+        {% endif %}
+    </form>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+<script>
+    function updateCountdownTimer(remId, targetDate) {
+        const countdownElement = document.getElementById("countdown_" + remId);
+        const now = moment();
+
+        const timeDiff = moment(targetDate).diff(now);
+
+        const duration = moment.duration(timeDiff);
+        const days = Math.floor(duration.asDays());
+        const hours = duration.hours();
+        const minutes = duration.minutes();
+        const seconds = duration.seconds();
+        console.log(targetDate);
+        countdownElement.innerHTML = `${days}д ${hours}ч ${minutes}м ${seconds}с`;
+    }
 
     {% for rem in data %}
-    <h1 class="display-6">{{rem}}</h1>
-    <input type="submit"
-           class="btn btn-danger m-2"
-           name="delete_{{rem['id']}}" value="Удалить">
+    const remId{{rem['id']}} = {{rem['id']}};
+    const targetDate{{rem['id']}} = "{{rem['start_date']}}";
+
+    setInterval(() => {
+        updateCountdownTimer(remId{{rem['id']}}, targetDate{{rem['id']}});
+    }, 1000);
     {% endfor %}
-</form>
-</div>
+</script>
+
 {% endblock %}

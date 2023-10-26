@@ -1,25 +1,100 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <div class="container">
-<form action="" method="POST" enctype="multipart/form-data">
-    {% for i in history %}
+    <form action="" method="POST" enctype="multipart/form-data">
 
-    <div class="row g-3 p-2">
-        {% if i[6] != None %}
-        <div class="col-auto">
-            <h1 class="display-6">{{ i[6].strftime("%B %d, %a") }}</h1>
+        <div class="row g-3 align-items-center">
+
+            <div class="col-auto">
+                <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="150"
+                     width="auto">
+            </div>
+            <div class="col-auto">
+                <h1 class="display-5">{{ name }}</h1>
+            </div>
         </div>
-        <div class="col-auto">
-            <h1 class="display-6">{{ i[2] }}</h1>
+        <br>
+        <form method="POST" action="">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="date" id="time"
+                               name="timefrom" value={{time_from}}
+                               min="2000-01-01" max="2030-12-31">
+                        <input type="date" id="time"
+                               name="timeto" value={{time_to}}
+                               min="2000-01-01" max="2030-12-31">
+                    </div>
+
+
+                    <div class="col-auto">
+                        <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
+                        <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
+
+                    </div>
+                </div>
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <select class="form-select" aria-label="Тип действия" name="m_type">
+                            <option value="all" {{[
+                            'selected', '', '', '', ''][selected]}}>Все варианты</option>
+                            <option value="watering" {{[
+                            '', 'selected', '', '', ''][selected]}}>Полив</option>
+                            <option value="planting" {{[
+                            '', '', 'selected', '', ''][selected]}}>Посадка</option>
+                            <option value="tending" {{[
+                            '', '', '', 'selected', ''][selected]}}>Уход</option>
+                            <option value="harvesting" {{[
+                            '', '', '', '', 'selected'][selected]}}>Сбор урожая</option>
+
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <input type="submit" class="btn btn-success btn-sm" name="m_type_btn" value="Выбрать">
+                    </div>
+                </div>
+
+
+            </div>
+        </form>
+        {% for i in history %}
+        <div class="container mt-4">
+            {% if i[4] != None %}
+            <div class="row g-3 align-items-center border rounded p-3">
+                <div class="col-auto">
+                    <h1 class="display-6">{{ i[4].strftime("%B %d, %a") }}</h1>
+                </div>
+                <div class="col-auto">
+                    <h1 class="display-6">{{ i[2] }}</h1>
+                </div>
+
+                {% if i[-2]["count"] %}
+                <div class="col-auto">
+                    <label class="fw-bold">Кол-во: </label>
+                    <label>{{i[-2]["count"]}}</label>
+                </div>
+                {% endif %}
+
+                {% if i[-2]["weight"] %}
+                <div class="col-auto">
+                    <label class="fw-bold">Вес в кг:</label>
+                    <label>{{i[-2]["weight"]}}</label>
+
+                </div>
+                {% endif %}
+
+                {% if i[-2]["img_src"] %}
+                <div class="col-auto">
+                    <img src="/{{ i[-2]['img_src']}}" class="img rounded" alt="Растение" height="200">
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
-        {% endif %}
-
-
-    </div>
-    <div/>
-    {% endfor %}
-</form>
+        {% endfor %}
+    </form>
 </div>
 
 {% endblock %}

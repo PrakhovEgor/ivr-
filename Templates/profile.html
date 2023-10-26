@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1 class="display-6">Профиль</h1>
+
+<p> Доступные телеграмм аккаунты:</p>
+<form action="" method="POST">
+    {% if not accs %}
+    <div class="alert alert-primary" role="alert">
+        Для того, чтобы создавать напоминания, Вы должны зарегистрировать хотя бы один telegram аккаунт.<br>
+        Чтобы это сделать напишите боту: <a href=" https://t.me/kachalka228_bot?start=100&text=/add">Telegram bot</a>
+
+    </div>
+    {% endif %}
+    {% for acc in accs %}
+    <div class="row g-3 align-items-center">
+        <div class="col-auto">
+            <p>ID: {{ acc[0] }}</p>
+        </div>
+        <div class="col-auto">
+            <input type="submit" class="btn btn-danger" name="delete_{{acc[1]}}" value="Удалить">
+        </div>
+    </div>
+    {% endfor %}
+</form>
+
+{% endblock %}

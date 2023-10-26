@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, PasswordField, SelectField
+from wtforms import StringField, SubmitField, PasswordField, SelectField, validators
 from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 
@@ -19,6 +19,8 @@ class RegisterForm(FlaskForm):
     password_confirmation = PasswordField("Повторите пароль: ", [DataRequired(),
                                                                  Length(min=4, max=20)])
     submit = SubmitField("Зарегистрироваться")
+
+
 
 
 class ForgotPassForm(FlaskForm):
