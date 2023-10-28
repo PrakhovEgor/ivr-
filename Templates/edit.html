@@ -1,9 +1,7 @@
 {% extends "base.html" %}
 
 
-
 {% block content %}
-
 <div class="d-flex flex-column align-items-center">
     <form action="" method="POST" enctype="multipart/form-data">
         <div class="container p-2">
@@ -23,281 +21,257 @@
                    name="harvesting" value="Сбор урожая">
         </div>
 
+        <div style="width:100%;overflow:hidden;">
+
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label class="col-form-label">Список растений:</label>
+                </div>
+                <div class="col-auto">
+                    <select class="form-select" aria-label="Default select example"
+                            name="all_or_user" id="all_or_user" oninput="checkInput()">
+                        <option value="all" selected>Весь</option>
+                        <option value="users">Ваш</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <input type="text" class="form-control" name="plant_input" value="{{ plant_input_placeholder }}"
+                           id="search_field" oninput="checkInput()">
+                </div>
+                <div class="col-auto">
+                    <input type="button" class="btn btn-success" name="search" value="Искать" id="search" oninput="checkInput()">
+                </div>
+            </div>
+            <div style="height:200px;width:50%;overflow-y:scroll;" id="plants_list">
+            </div>
+        </div>
 
         {% if status == 1 %}
-        <!--        <h1 class="display-6">Какие растения полили?</h1>-->
-
-
-        <div style="width:100%;overflow:hidden;">
-
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Список растений:</label>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['', 'outline-'][list_status]}}primary btn-sm"
-                           name="list_all" value="Весь">
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['outline-', ''][list_status]}}primary btn-sm"
-                           name="list_user" value="Ваш">
-                </div>
-            </div>
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-success" name="search" value="Искать">
-                </div>
-            </div>
-
-            <div style="height:200px;width:100%;overflow-y:scroll;">
-                {% for plant in plants %}
-                <label><input type="checkbox" name={{plant[0]}} value={{plant[1]}}>{{ plant[1] }}</label><br>
-                {% endfor %}
-            </div>
-
-        </div>
-        <br>
         <input type="submit" class="btn btn-success m-2" name="save_w" value="Сохранить">
-
         {% elif status == 2 %}
-        <!--        <h1 class="display-6">Посадка</h1>-->
-        <div style="width:100%;overflow:hidden;">
+        <br>
+        <input type="submit" class="btn btn-success m-2" name="continue_p" value="Продолжить">
+        <hr>
 
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Список растений:</label>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['', 'outline-'][list_status]}}primary btn-sm"
-                           name="list_all" value="Весь">
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['outline-', ''][list_status]}}primary btn-sm"
-                           name="list_user" value="Ваш">
-                </div>
+        {% if plants_to_plant %}
+        {% for plant in plants_to_plant %}
+        <div class="container align-items-center">
+            <div class="col-auto">
+                <h1 class="display-6">{{ plant[1] }}</h1>
             </div>
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
+                    <label>Вы посадили:</label>
                 </div>
                 <div class="col-auto">
-                    <input type="submit" class="btn btn-success" name="search" value="Искать">
+                    <select class="form-select" aria-label="Default select example"
+                            name="{{ plant[0]|string + '_type' }}">
+                        <option value="seeds" selected>Семена</option>
+                        <option value="sprouts">Ростки</option>
+                    </select>
                 </div>
-            </div>
-            <div style="height:200px;width:100%;overflow-y:scroll;">
-                {% for plant in plants %}
-                <label><input type="checkbox" name={{plant[0]}} value={{plant[1]}} {{plant[2]}}>{{
-                    plant[1]}}</label><br>
-                {% endfor %}
-            </div>
-            <br>
-            <input type="submit" class="btn btn-success m-2" name="continue_p" value="Продолжить">
-            <hr>
 
-            {% if plants_to_plant %}
-            {% for plant in plants_to_plant %}
-            <div class="container align-items-center">
                 <div class="col-auto">
-                    <h1 class="display-6">{{ plant[1] }}</h1>
+                    <label>Кол-во:</label>
                 </div>
-                <div class="row g-3 align-items-center">
-                    <div class="col-auto">
-                        <label>Вы посадили:</label>
-                    </div>
-                    <div class="col-auto">
-                        <select class="form-select" aria-label="Default select example"
-                                name="{{ plant[0]|string + '_type' }}">
-                            <option value="seeds" selected>Семена</option>
-                            <option value="sprouts">Ростки</option>
-                        </select>
-                    </div>
-
-                    <div class="col-auto">
-                        <label>Кол-во:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input value="1" min="1" max="1000" type="number" id="typeNumber" class="form-control"
-                               name="{{plant[0]|string +'_count'}}">
-                    </div>
-                    <div class="col-auto">
-                        <label>Фотография(необязательно):</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
-                    </div>
-
+                <div class="col-auto">
+                    <input value="1" min="1" max="1000" type="number" id="typeNumber" class="form-control"
+                           name="{{plant[0]|string +'_count'}}">
                 </div>
-
+                <div class="col-auto">
+                    <label>Фотография(необязательно):</label>
+                </div>
+                <div class="col-auto">
+                    <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
 
             </div>
 
-            <br>
-            {% endfor %}
-            <input type="submit" class="btn btn-success m-2" name="save_p" value="Сохранить">
-            {% endif %}
+
         </div>
 
-
-        {% elif status == 3 %}
-        <!--        <h1 class="display-6">Уход</h1>-->
-        <div style="width:100%;overflow:hidden;">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Список растений:</label>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['', 'outline-'][list_status]}}primary btn-sm"
-                           name="list_all" value="Весь">
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['outline-', ''][list_status]}}primary btn-sm"
-                           name="list_user" value="Ваш">
-                </div>
-            </div>
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-success" name="search" value="Искать">
-                </div>
-            </div>
-            <div style="height:200px;width:100%;overflow-y:scroll;">
-                {% for plant in plants %}
-                <label><input type="checkbox" name={{plant[0]}} value={{plant[1]}} {{plant[2]}}>{{
-                    plant[1]}}</label><br>
-                {% endfor %}
-            </div>
-            <br>
-            <input type="submit" class="btn btn-success m-2" name="continue_t" value="Продолжить">
-            <hr>
-
-            {% if plants_to_plant %}
-            {% for plant in plants_to_plant %}
-            <div class="container align-items-center">
-                <div class="col-auto">
-                    <h1 class="display-6">{{ plant[1] }}</h1>
-                </div>
-                <div class="row g-3 align-items-center">
-                    <div class="col-auto">
-                        <label>Тип ухода:</label>
-                    </div>
-                    <div class="col-auto">
-                        <select class="form-select" aria-label="Default select example"
-                                name="{{ plant[0]|string + '_type' }}">
-                            <option value="weeding">Прополка</option>
-                            <option value="fertilizing" selected>Удобрение</option>
-                            <option value="pest_control">Борьба с вредителями</option>
-                            <option value="transplant">Пересадка</option>
-                            <option value="pruning">Обрезка</option>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <label>Фотография(необязательно):</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
-                    </div>
-
-                </div>
-
-
-            </div>
-
-            <br>
-            {% endfor %}
-            <input type="submit" class="btn btn-success m-2" name="save_t" value="Сохранить">
-            {% endif %}
-        </div>
-
-
-        {% elif status == 4 %}
-        <!--        <h1 class="display-6">Сбор урожая</h1>-->
-        <div style="width:100%;overflow:hidden;">
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Список растений:</label>
-                </div>
-
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['', 'outline-'][list_status]}}primary btn-sm"
-                           name="list_all" value="Весь">
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-{{['outline-', ''][list_status]}}primary btn-sm"
-                           name="list_user" value="Ваш">
-                </div>
-            </div>
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
-                </div>
-                <div class="col-auto">
-                    <input type="submit" class="btn btn-success" name="search" value="Искать">
-                </div>
-            </div>
-            <div style="height:200px;width:100%;overflow-y:scroll;">
-                {% for plant in plants %}
-                <label><input type="checkbox" name={{plant[0]}} value={{plant[1]}} {{plant[2]}}>{{
-                    plant[1]}}</label><br>
-                {% endfor %}
-            </div>
-            <br>
-            <input type="submit" class="btn btn-success m-2" name="continue_h" value="Продолжить">
-            <hr>
-
-            {% if plants_to_plant %}
-            {% for plant in plants_to_plant %}
-            <div class="container align-items-center">
-                <div class="col-auto">
-                    <h1 class="display-6">{{ plant[1] }}</h1>
-                </div>
-                <div class="row g-3 align-items-center">
-
-                    <div class="col-auto">
-                        <label>Кол-во:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input value="1" min="1" max="1000" type="number" class="form-control"
-                               name="{{plant[0]|string +'_count'}}">
-                    </div>
-
-                    <div class="col-auto">
-                        <label>Вес:</label>
-                    </div>
-                    <div class="col-auto">
-                        <input value="1" min="0.000" max="1000" step="0.1" type="number"
-                               class="form-control"
-                               name="{{plant[0]|string +'_weight'}}">
-
-                    </div>
-                    <div class="col-auto">
-                        <label>Кг</label>
-                    </div>
-                    <div class="col-auto">
-                        <label>Фотография(необязательно):</label>
-                    </div>
-                    <div class="col-auto">
-                        <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
-                    </div>
-
-                </div>
-
-
-            </div>
-
-            <br>
-            {% endfor %}
-            <input type="submit" class="btn btn-success m-2" name="save_h" value="Сохранить">
-            {% endif %}
-        </div>
+        <br>
+        {% endfor %}
+        <input type="submit" class="btn btn-success m-2" name="save_p" value="Сохранить">
         {% endif %}
+        {% elif status == 3 %}
+        <br>
+        <input type="submit" class="btn btn-success m-2" name="continue_t" value="Продолжить">
+        <hr>
+
+        {% if plants_to_plant %}
+        {% for plant in plants_to_plant %}
+        <div class="container align-items-center">
+            <div class="col-auto">
+                <h1 class="display-6">{{ plant[1] }}</h1>
+            </div>
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <label>Тип ухода:</label>
+                </div>
+                <div class="col-auto">
+                    <select class="form-select" aria-label="Default select example"
+                            name="{{ plant[0]|string + '_type' }}">
+                        <option value="weeding">Прополка</option>
+                        <option value="fertilizing" selected>Удобрение</option>
+                        <option value="pest_control">Борьба с вредителями</option>
+                        <option value="transplant">Пересадка</option>
+                        <option value="pruning">Обрезка</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <label>Фотография(необязательно):</label>
+                </div>
+                <div class="col-auto">
+                    <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <br>
+        {% endfor %}
+        <input type="submit" class="btn btn-success m-2" name="save_t" value="Сохранить">
+        {% endif %}
+        {% elif status == 4 %}
+        <br>
+        <input type="submit" class="btn btn-success m-2" name="continue_h" value="Продолжить">
+        <hr>
+
+        {% if plants_to_plant %}
+        {% for plant in plants_to_plant %}
+        <div class="container align-items-center">
+            <div class="col-auto">
+                <h1 class="display-6">{{ plant[1] }}</h1>
+            </div>
+            <div class="row g-3 align-items-center">
+
+                <div class="col-auto">
+                    <label>Кол-во:</label>
+                </div>
+                <div class="col-auto">
+                    <input value="1" min="1" max="1000" type="number" class="form-control"
+                           name="{{plant[0]|string +'_count'}}">
+                </div>
+
+                <div class="col-auto">
+                    <label>Вес:</label>
+                </div>
+                <div class="col-auto">
+                    <input value="1" min="0.000" max="1000" step="0.1" type="number"
+                           class="form-control"
+                           name="{{plant[0]|string +'_weight'}}">
+
+                </div>
+                <div class="col-auto">
+                    <label>Кг</label>
+                </div>
+                <div class="col-auto">
+                    <label>Фотография(необязательно):</label>
+                </div>
+                <div class="col-auto">
+                    <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
+
+            </div>
+
+
+        </div>
+
+        <br>
+        {% endfor %}
+        <input type="submit" class="btn btn-success m-2" name="save_h" value="Сохранить">
+        {% endif %}
+        {% endif %}
+
 
     </form>
 </div>
 
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let plants = {{plants | tojson}};
 
+        for (let i = 0; i < plants.length; i++) {
+            var plant = plants[i];
+
+            var input = document.createElement("input");
+            input.type = "checkbox";
+            input.name = plant[0];
+            input.value = plant[1];
+            if (plant[plant.length - 1] === "checked"){
+                    input.checked = true;
+                }
+            var label = document.createElement("label");
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(plant[1]));
+            var container = document.getElementById("plants_list");
+            container.appendChild(label);
+            var br = document.createElement("br");
+            container.appendChild(br);
+        }
+    });
+
+    function checkInput() {
+        let plants = {{plants | tojson}};
+
+        var container = document.getElementById("plants_list");
+        container.innerHTML = '';
+        var user_plants = {{user_plants}};
+        var all_or_user = document.getElementById("all_or_user").value;
+
+        var promt = document.getElementById("search_field");
+
+        for (let i = 0; i < plants.length; i++) {
+            var plant = plants[i];
+            if (plant[1].toLowerCase().includes(promt.value.toLowerCase()) && (all_or_user === "all" || user_plants.includes(plant[0]))) {
+                var input = document.createElement("input");
+                input.type = "checkbox";
+                input.name = plant[0];
+                input.value = plant[1];
+
+                if (plant[plant.length - 1] === "checked"){
+                    input.checked = true;
+                }
+                var label = document.createElement("label");
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(plant[1]));
+
+                container.appendChild(label);
+                var br = document.createElement("br");
+                container.appendChild(br);
+            }
+        }
+    }
+
+    function change_lst() {
+        const plants = {{plants | tojson }};
+        const user_plants = {{user_plants}};
+        const promt = document.getElementById("all_or_user").value;
+        const container = document.getElementById("plants_list");
+        container.innerHTML = '';
+
+        console.log(promt);
+
+        for (let i = 0; i < plants.length; i++) {
+            const plant = plants[i];
+            if (promt === "all" || user_plants.includes(plant[0])) {
+                const input = document.createElement("input");
+                input.type = "checkbox";
+                input.name = plant[0];
+                input.value = plant[1];
+                const label = document.createElement("label");
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(plant[1]));
+
+                container.appendChild(label);
+                container.appendChild(document.createElement("br"));
+            }
+        }
+    }
+</script>
 {% endblock %}
