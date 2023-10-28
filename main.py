@@ -407,7 +407,6 @@ def user_plants():
             else:
                 session["alph_dir"] = "down"
                 user_plants.sort(key=lambda x: x[1], reverse=True)
-
         elif "date" in request.form:
             if session.get("date_dir", "down") == "down":
                 session["date_dir"] = "up"
@@ -448,11 +447,11 @@ def make_reminder():
     accs_error = ''
 
     if request.method == "POST":
+        print(request.form)
         if "search" in request.form:
             search = request.form["plant_input"]
             plant_input_placeholder = search
         elif "save" in request.form:
-            print(request.form)
             if request.form["name"] == "":
                 name_error = "Введите название"
             elif "accounts" not in request.form:
@@ -461,7 +460,7 @@ def make_reminder():
                 save_reminder(request.form)
                 return redirect("/reminders")
 
-    plants = Plants_().get_plants_idname(search=search, include_users=True)
+    plants = Plants_().get_plants_idname(include_users=True)
     accounts = User_().get_user_tg()
     return render_template("make_reminders.html", plants=plants, plant_input_placeholder=plant_input_placeholder,
                            cur_date=datetime.date.today(), cur_time=datetime.datetime.now().strftime("%H:%M"),
@@ -844,7 +843,7 @@ def save_reminder(d):
             id = file_data["data"][-1]["id"]
         addition = {"id": id + 1, "email": session.get("email"), "name": info["name"], "m_type": en_to_ru[info["m_type"]],
                     "tg_id": accounts, "plants": [x[1] for x in Plants_().get_plants_idname(id=plants)], "start_date": info["start_date"], "period": period,
-                    "comment": info["comment"]}
+                    "comment": info["comment"], "plants_ids": plants}
         file_data["data"].append(addition)
         file.seek(0)
         json.dump(file_data, file, indent=4)

@@ -169,6 +169,27 @@ class User:
             self.mysql.connection.commit()
         cur.close()
 
+        with open("static/tg_data.json", 'r+', encoding='utf-8') as file:
+            file_data = json.load(file)
+            data = file_data["data"]
+            new_data = []
+
+            for item in data:
+                item = item
+                if item["email"] == self.email:
+                    if str(plant_id) in item["plants_ids"]:
+                        temp = set(item["plants_ids"])
+                        temp.remove(plant_id)
+                        item["plants_ids"] = list(temp)
+                        temp = set(item["plants"])
+                        temp.remove(name)
+                        item["plants"] = list(temp)
+                new_data.append(item)
+
+            file_data["data"] = new_data
+            file.seek(0)
+            file.truncate()
+            json.dump(file_data, file, indent=2)
         return
 
     def get_user_tg(self):
