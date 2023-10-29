@@ -29,7 +29,7 @@ class User:
         msg['From'] = sender_email
         msg['To'] = receiver_email
         msg['Subject'] = subject
-        msg.attach(MIMEText(body, _charset='utf-16'))
+        msg.attach(MIMEText(body, 'plain', 'utf-32'))
         server = smtplib.SMTP_SSL('smtp.mail.ru', 465)
         server.login(sender_email, sender_password)
         server.sendmail(sender_email, receiver_email, msg.as_string())

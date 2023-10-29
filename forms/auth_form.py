@@ -4,14 +4,14 @@ from wtforms.validators import DataRequired, Email, Length, EqualTo
 
 
 class LoginForm(FlaskForm):
-    email = StringField("Email: ", validators=[Email()])
+    email = StringField("Почта: ", validators=[Email()])
     password = PasswordField("Пароль: ", [DataRequired(),
                                           Length(min=4, max=20)])
     submit = SubmitField("Войти")
 
 
 class RegisterForm(FlaskForm):
-    email = StringField("Email: ", validators=[Email()])
+    email = StringField("Почта: ", validators=[Email()])
     password = PasswordField("Пароль: ", [DataRequired(),
                                           Length(min=4, max=20),
                                           EqualTo('password_confirmation',

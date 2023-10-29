@@ -35,6 +35,7 @@
                     </select>
                 </div>
             </div>
+            <br>
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <input type="text" class="form-control" name="plant_input" value="{{ plant_input_placeholder }}"
@@ -44,7 +45,7 @@
                     <input type="button" class="btn btn-success" name="search" value="Искать" id="search" oninput="checkInput()">
                 </div>
             </div>
-            <div style="height:200px;width:50%;overflow-y:scroll;" id="plants_list">
+            <div style="height:200px;width:100%;overflow-y:scroll;" id="plants_list">
             </div>
         </div>
 
@@ -81,10 +82,16 @@
                            name="{{plant[0]|string +'_count'}}">
                 </div>
                 <div class="col-auto">
-                    <label>Фотография(необязательно):</label>
+                    <label>Фотография:</label>
                 </div>
                 <div class="col-auto">
                     <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
+                <div class="col-auto">
+                    <label>Комментарий:</label>
+                </div>
+                <div class="col-auto">
+                    <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
 
             </div>
@@ -122,10 +129,16 @@
                     </select>
                 </div>
                 <div class="col-auto">
-                    <label>Фотография(необязательно):</label>
+                    <label>Фотография:</label>
                 </div>
                 <div class="col-auto">
                     <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
+                <div class="col-auto">
+                    <label>Комментарий:</label>
+                </div>
+                <div class="col-auto">
+                    <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
 
             </div>
@@ -171,10 +184,16 @@
                     <label>Кг</label>
                 </div>
                 <div class="col-auto">
-                    <label>Фотография(необязательно):</label>
+                    <label>Фотография:</label>
                 </div>
                 <div class="col-auto">
                     <input type="file" name="image_{{plant[0]}}" accept=".png,.jpg,.jpeg">
+                </div>
+                <div class="col-auto">
+                    <label>Комментарий:</label>
+                </div>
+                <div class="col-auto">
+                    <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
 
             </div>

@@ -23,21 +23,21 @@ from Plants_class import Plants
 
 locale.setlocale(locale.LC_TIME, 'ru_RU')
 
-log_config = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'null': {
-            'class': 'logging.NullHandler',
-        },
-    },
-    'root': {
-        'handlers': ['null'],
-        'level': 'DEBUG',
-    },
-}
-
-logging.config.dictConfig(log_config)
+# log_config = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'null': {
+#             'class': 'logging.NullHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['null'],
+#         'level': 'DEBUG',
+#     },
+# }
+#
+# logging.config.dictConfig(log_config)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bf&*gyusdgf^Sggf78y5sj'
 
@@ -202,6 +202,10 @@ def edit():
             return redirect("/")
         elif "save_p" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
             seeds = get_lst_of_type("seeds", request.form.items())
             sprouts = get_lst_of_type("sprouts", request.form.items())
             files = {}
@@ -213,16 +217,23 @@ def edit():
                     v.save(os.path.join(f"static/{session.get('email')}", name))
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
             for seed in seeds:
-                User_().save_action(seed[0], "planting_seeds", {"count": seed[1], "img_src": files.get(seed[0], '')})
+                User_().save_action(seed[0], "planting_seeds", {"count": seed[1], "img_src": files.get(seed[0], ''),
+                                                                'comment': comments.get(seed[0], "")})
             for sprout in sprouts:
                 User_().save_action(sprout[0], "planting_sprouts",
-                                    {"count": sprout[1], "img_src": files.get(sprout[0], '')})
+                                    {"count": sprout[1], "img_src": files.get(sprout[0]),
+                                     'comment': comments.get(sprout[0], "")})
             return redirect("/")
         elif "continue_t" in request.form:
             all_plants, plants_to_plant = continue_act(all_plants, request.form)
 
         elif "save_t" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
+
             temp = []
             for k, v in request.form.items():
                 id = k[:k.find('_')]
@@ -238,12 +249,17 @@ def edit():
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
 
             for el in temp:
-                User_().save_action(el[0], "tending_" + el[1], {"img_src": files.get(el[0], '')})
+                User_().save_action(el[0], "tending_" + el[1],
+                                    {"img_src": files.get(el[0], ''), "comment": comments.get(el[0], "")})
             return redirect("/")
         elif "continue_h" in request.form:
             all_plants, plants_to_plant = continue_act(all_plants, request.form)
         elif "save_h" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
             temp = defaultdict(list)
             for k, v in request.form.items():
                 id = k[:k.find('_')]
@@ -264,9 +280,9 @@ def edit():
 
             for el in temp:
                 User_().save_action(el[0], "harvesting",
-                                    {"count": el[1], "weight": el[2], "img_src": files.get(el[0], '')})
+                                    {"count": el[1], "weight": el[2], "img_src": files.get(el[0], ''),
+                                     "comment": comments.get(el[0], "")})
             return redirect("/")
-    print(all_plants)
     return render_template("edit.html", main="Журнал", user=session.get('email'), status=session.get('status', 0),
                            plants=all_plants, user_plants=user_plants, plants_to_plant=plants_to_plant)
 
@@ -416,7 +432,6 @@ def make_reminder():
     accs_error = ''
 
     if request.method == "POST":
-        print(request.form)
         if "search" in request.form:
             search = request.form["plant_input"]
             plant_input_placeholder = search
