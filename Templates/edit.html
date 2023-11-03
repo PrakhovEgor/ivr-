@@ -248,49 +248,54 @@
         for (let i = 0; i < plants.length; i++) {
             var plant = plants[i];
             if (plant[1].toLowerCase().includes(promt.value.toLowerCase()) && (all_or_user === "all" || user_plants.includes(plant[0]))) {
-                var input = document.createElement("input");
-                input.type = "checkbox";
-                input.name = plant[0];
-                input.value = plant[1];
+                const col = document.createElement('div');
+                col.className = 'col d-flex align-items-stretch justify-content-center my-2';
 
-                if (plant[plant.length - 1] === "checked"){
-                    input.checked = true;
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.width = '18rem';
+
+                const img = document.createElement('img');
+                img.src = `static/${plant[1]}.jpg`;
+                img.className = 'card-img-top';
+                img.alt = 'Растение';
+
+                const cardBody = document.createElement('div');
+                cardBody.className = 'card-body text-center';
+
+                const title = document.createElement('h5');
+                title.className = 'card-title';
+                title.textContent = plant[1];
+
+                if (user_plants.includes(plant[0])) {
+                    const addedBtn = document.createElement('a');
+                    addedBtn.className = 'btn btn-primary disabled';
+                    addedBtn.textContent = 'Добавлено';
+                    cardBody.appendChild(addedBtn);
+                } else {
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'btn-check';
+                    checkbox.id = plant[0];
+                    checkbox.name = plant[0];
+                    checkbox.autocomplete = 'off';
+
+                    const label = document.createElement('label');
+                    label.className = 'btn btn-outline-primary';
+                    label.htmlFor = plant[0];
+                    label.textContent = 'Добавить';
+
+                    cardBody.appendChild(checkbox);
+                    cardBody.appendChild(label);
                 }
-                var label = document.createElement("label");
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(plant[1]));
 
-                container.appendChild(label);
-                var br = document.createElement("br");
-                container.appendChild(br);
+                card.appendChild(img);
+                card.appendChild(cardBody);
+                col.appendChild(card);
+                row.appendChild(col);
             }
         }
     }
 
-    function change_lst() {
-        const plants = {{plants | tojson }};
-        const user_plants = {{user_plants}};
-        const promt = document.getElementById("all_or_user").value;
-        const container = document.getElementById("plants_list");
-        container.innerHTML = '';
-
-        console.log(promt);
-
-        for (let i = 0; i < plants.length; i++) {
-            const plant = plants[i];
-            if (promt === "all" || user_plants.includes(plant[0])) {
-                const input = document.createElement("input");
-                input.type = "checkbox";
-                input.name = plant[0];
-                input.value = plant[1];
-                const label = document.createElement("label");
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(plant[1]));
-
-                container.appendChild(label);
-                container.appendChild(document.createElement("br"));
-            }
-        }
-    }
 </script>
 {% endblock %}

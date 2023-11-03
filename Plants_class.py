@@ -120,7 +120,6 @@ class Plants:
 
         return dict(res)
 
-
     def get_plant_history(self, plant_id, m_type='all'):
         plant_id = plant_id
         if m_type == "all":
@@ -168,6 +167,3 @@ class Plants:
         res = cur.fetchall()
         cur.close()
         return res
-
-
-

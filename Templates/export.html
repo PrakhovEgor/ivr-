@@ -1,5 +1,38 @@
 {% extends "base.html" %}
 
 {% block content %}
+<form action="/export" method="POST">
+    <div class="container">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-6"> <!-- левый контейнер -->
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Название</th>
+                        </tr>
+                        <tbody>
+                        {% for plant in user_plants %}
+                        <tr>
+                            <th scope="row">{{plant[0] + 1}}</th>
+                            <td>{{plant[1][1]}}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                        </thead>
+                    </table>
+                    <input type="submit" class="btn btn-primary" name="user_plants" value="Скачать"
+                           id="user_plants">
+                </div>
+                <div class="col-md-6"> <!-- правый контейнер -->
+                    <input type="submit" class="btn btn-primary" name="user_hist" value="История действий"
+                           id="user_hist">
+                </div>
+            </div>
+        </div>
 
+
+    </div>
+</form>
 {% endblock %}

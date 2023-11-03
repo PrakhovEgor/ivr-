@@ -2,47 +2,151 @@
 
 {% block content %}
 <div class="container">
-<form action="" method="post">
-    <h1 class="display-6">Добавление:</h1>
-    <div class="row g-3 align-items-center">
-        <div class="col-auto">
-            <input type="text" class="form-control" name="plant_input" value={{plant_input_placeholder}}>
-        </div>
-        <div class="col-auto">
-            <input type="submit" class="btn btn-success" name="search" value="Искать">
-        </div>
-        <div class="col-auto">
-            <input type="submit" class="btn btn-primary" name="create_plant" value="Не нашли нужное растение?">
-        </div>
-    </div><br>
-
-    <div style="height:600px;width:100%;overflow-y:scroll;">
-        <div class="row ">
-            {% for plant in plants %}
-            <div class="col d-flex align-items-stretch justify-content-center my-2">
-                <div class="card" style="width: 18rem;">
-                    <img src="{{url_for('static', filename=plant[1]+'.jpg')}}" class="card-img-top" alt="Растение">
-                    <div class="card-body text-center ">
-                        <h5 class="card-title">{{ plant[1] }}</h5>
-                        {% if plant[0] in user_plants %}
-                        <a href="#" class="btn btn-primary disabled">Добавлено</a>
-                        {% else %}
-                        <!--                    <a href="#" id="noScrollButton" class="btn btn-success" name="">Добавить</a>-->
-                        <input type="checkbox" class="btn-check" id="{{plant[0]}}" name="{{plant[0]}}"
-                               autocomplete="off">
-                        <label class="btn btn-outline-primary" for="{{plant[0]}}">Добавить</label>
-                        {% endif %}
-                    </div>
-                </div>
+    <form action="" method="post">
+        <h1 class="display-6">Добавление:</h1>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <input type="text" class="form-control" name="plant_input" value="{{plant_input_placeholder}}"
+                       id="search_field" oninput="checkInput()">
             </div>
-            <br>
-            {% endfor %}
-
+            <div class="col-auto">
+                <input type="submit" class="btn btn-success" name="search" value="Искать" id="search"
+                       oninput="checkInput()">
+            </div>
+            <div class="col-auto">
+                <input type="submit" class="btn btn-primary" name="create_plant" value="Не нашли нужное растение?">
+            </div>
         </div>
-    </div>
-    <input type="submit"
-           class="btn btn-success m-2"
-           name="save" value="Сохранить">
-</form>
+        <br>
+
+        <div style="height:500px;width:100%;overflow-y:scroll;">
+            <div class="row" id="plants_list">
+
+            </div>
+        </div>
+        <input type="submit"
+               class="btn btn-success m-2"
+               name="save" value="Сохранить">
+    </form>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const container = document.getElementById('plants_list');
+
+        let plants = {{plants | tojson}};
+        let user_plants = {{user_plants}};
+        console.log(plants);
+        for (const plant of plants) {
+            const col = document.createElement('div');
+            col.className = 'col d-flex align-items-stretch justify-content-center my-2';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.width = '18rem';
+
+            const img = document.createElement('img');
+            img.src = `static/${plant[1]}.jpg`;
+            img.className = 'card-img-top';
+            img.alt = 'Растение';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body text-center';
+
+            const title = document.createElement('h5');
+            title.className = 'card-title';
+            title.textContent = plant[1];
+
+            cardBody.appendChild(title);
+
+            if (user_plants.includes(plant[0])) {
+                const addedBtn = document.createElement('a');
+                addedBtn.className = 'btn btn-primary disabled';
+                addedBtn.textContent = 'Добавлено';
+                cardBody.appendChild(addedBtn);
+            } else {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'btn-check';
+                checkbox.id = plant[0];
+                checkbox.name = plant[0];
+                checkbox.autocomplete = 'off';
+
+                const label = document.createElement('label');
+                label.className = 'btn btn-outline-primary';
+                label.htmlFor = plant[0];
+                label.textContent = 'Добавить';
+
+                cardBody.appendChild(checkbox);
+                cardBody.appendChild(label);
+            }
+
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            col.appendChild(card);
+            container.appendChild(col);
+        }
+
+    });
+    function checkInput() {
+        let plants = {{plants | tojson}};
+        var container = document.getElementById("plants_list");
+        container.innerHTML = '';
+        var user_plants = {{user_plants}};
+
+
+        var promt = document.getElementById("search_field");
+
+        for (let i = 0; i < plants.length; i++) {
+            var plant = plants[i];
+            if (plant[1].toLowerCase().includes(promt.value.toLowerCase())) {
+                const col = document.createElement('div');
+            col.className = 'col d-flex align-items-stretch justify-content-center my-2';
+
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.style.width = '18rem';
+
+            const img = document.createElement('img');
+            img.src = `static/${plant[1]}.jpg`;
+            img.className = 'card-img-top';
+            img.alt = 'Растение';
+
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body text-center';
+
+            const title = document.createElement('h5');
+            title.className = 'card-title';
+            title.textContent = plant[1];
+            cardBody.appendChild(title);
+            if (user_plants.includes(plant[0])) {
+                const addedBtn = document.createElement('a');
+                addedBtn.className = 'btn btn-primary disabled';
+                addedBtn.textContent = 'Добавлено';
+                cardBody.appendChild(addedBtn);
+            } else {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'btn-check';
+                checkbox.id = plant[0];
+                checkbox.name = plant[0];
+                checkbox.autocomplete = 'off';
+
+                const label = document.createElement('label');
+                label.className = 'btn btn-outline-primary';
+                label.htmlFor = plant[0];
+                label.textContent = 'Добавить';
+
+                cardBody.appendChild(checkbox);
+                cardBody.appendChild(label);
+            }
+
+            card.appendChild(img);
+            card.appendChild(cardBody);
+            col.appendChild(card);
+            container.appendChild(col);
+            }
+        }
+    }
+</script>
 {% endblock %}

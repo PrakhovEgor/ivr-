@@ -3,8 +3,10 @@ import json
 import os
 from PIL import Image
 import pandas as pd
-
-from flask import Flask, render_template, request, redirect, session, jsonify, url_for
+from urllib.parse import quote
+from openpyxl import Workbook
+from io import BytesIO
+from flask import Flask, render_template, request, redirect, session, jsonify, url_for, make_response
 from forms.auth_form import LoginForm, RegisterForm, ForgotPassForm, ResetPassForm
 from flask_mysqldb import MySQL
 from flask_mail import Mail
@@ -720,13 +722,42 @@ def profile():
             if i.startswith("delete"):
                 User_().delete_tg(user_id=i.split('_')[1])
 
-
     return render_template("profile.html", user=session.get("email", 0), active_profile='text-white', accs=accs)
 
 
 @app.route('/export', methods=['GET', 'POST'])
 def export():
-    return render_template("export.html", user=session.get("email", 0))
+    user_plants = Plants_().get_plants_idname(include_users=True)
+    if request.method == "POST":
+        if "user_plants" in request.form:
+            # Create a new Excel workbook
+            workbook = Workbook()
+            worksheet = workbook.active
+
+            # Add the table headers
+            worksheet.append(['Название'])
+
+            # Add user_plants data to the worksheet
+            for idx, plant in enumerate(user_plants):
+                worksheet.append([plant[1]])
+
+            # Create a BytesIO object to store the Excel file in memory
+            excel_file = BytesIO()
+
+            # Save the workbook to the BytesIO object
+            workbook.save(excel_file)
+            excel_file.seek(0)
+
+            filename = 'Ваши_растения.xlsx'
+            quoted_filename = quote(filename.encode('utf-8'))
+
+
+            response = make_response(excel_file.read())
+            response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            response.headers['Content-Disposition'] = f'attachment; filename="{quoted_filename}"'
+
+            return response
+    return render_template("export.html", user=session.get("email", 0), user_plants=enumerate(user_plants))
 
 
 @app.route('/logout', methods=['GET', 'POST'])
