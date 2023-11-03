@@ -731,11 +731,19 @@ def create_plant():
 def profile():
     accs = User_().get_user_tg()
     if request.method == "POST":
+        if "export" in request.form:
+            return redirect("/export")
         for i in request.form:
             if i.startswith("delete"):
                 User_().delete_tg(user_id=i.split('_')[1])
 
+
     return render_template("profile.html", user=session.get("email", 0), active_profile='text-white', accs=accs)
+
+
+@app.route('/export', methods=['GET', 'POST'])
+def export():
+    return render_template("export.html", user=session.get("email", 0))
 
 
 @app.route('/logout', methods=['GET', 'POST'])
