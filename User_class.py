@@ -261,3 +261,10 @@ class User:
         self.mysql.connection.commit()
         cur.close()
         return
+
+    def get_all_history(self):
+        cur = self.mysql.connection.cursor()
+        cur.execute(f"SELECT * FROM user_data WHERE user_id = {self.id} AND m_type != 'own'")
+        res = cur.fetchall()
+        cur.close()
+        return res

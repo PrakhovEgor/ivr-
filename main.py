@@ -6,7 +6,7 @@ import pandas as pd
 from urllib.parse import quote
 from openpyxl import Workbook
 from io import BytesIO
-from flask import Flask, render_template, request, redirect, session, jsonify, url_for, make_response
+from flask import Flask, render_template, request, redirect, session, jsonify, url_for, make_response, Response
 from forms.auth_form import LoginForm, RegisterForm, ForgotPassForm, ResetPassForm
 from flask_mysqldb import MySQL
 from flask_mail import Mail
@@ -728,6 +728,8 @@ def profile():
 @app.route('/export', methods=['GET', 'POST'])
 def export():
     user_plants = Plants_().get_plants_idname(include_users=True)
+    history = list(User_().get_all_history())
+
     if request.method == "POST":
         if "user_plants" in request.form:
             # Create a new Excel workbook
@@ -751,19 +753,54 @@ def export():
             filename = 'Ваши_растения.xlsx'
             quoted_filename = quote(filename.encode('utf-8'))
 
-
             response = make_response(excel_file.read())
             response.headers['Content-Type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             response.headers['Content-Disposition'] = f'attachment; filename="{quoted_filename}"'
-
             return response
-    return render_template("export.html", user=session.get("email", 0), user_plants=enumerate(user_plants))
+
+    ids = [x[1] for x in history]
+    plants = [Plants_().get_plants_idname(id=[x])[0][1] for x in ids]
+    for i in range(len(history)):
+        history[i] = list(history[i])
+        history[i][1] = plants[i]
+    print(history)
+    return render_template("export.html", user=session.get("email", 0), user_plants=enumerate(user_plants),
+                           history=history)
 
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
     session.clear()
     return redirect("/login/")
+
+
+@app.route('/download_xlsx', methods=['POST'])
+def download_xlsx():
+    data = request.json  # Получите данные из вашей таблицы, переданные через AJAX
+
+    # Создайте новую книгу Excel и активный лист
+    workbook = Workbook()
+    worksheet = workbook.active
+
+    worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес', 'Комментарий'])
+
+    # Запишите данные из JSON в книгу Excel
+    for row in data:
+        worksheet.append(row)
+
+    # Создайте буфер для хранения данных XLSX
+    excel_file = BytesIO()
+    workbook.save(excel_file)
+    excel_file .seek(0)
+
+    # Определите имя файла и заголовки для HTTP-ответа
+    filename = 'История.xlsx'
+    quoted_filename = quote(filename.encode('utf-8'))
+    response = Response(excel_file .getvalue(),
+                        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    response.headers["Content-Disposition"] = f"attachment; filename={quoted_filename}"
+    print(response)
+    return response
 
 
 def get_emails():  # Возвращает список emailов

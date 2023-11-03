@@ -1,32 +1,65 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .table-container {
+        height: 400px; /* Adjust the height as needed */
+        overflow-y: auto;
+    }
+</style>
 <form action="/export" method="POST">
     <div class="container">
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-6"> <!-- левый контейнер -->
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Название</th>
-                        </tr>
-                        <tbody>
-                        {% for plant in user_plants %}
-                        <tr>
-                            <th scope="row">{{plant[0] + 1}}</th>
-                            <td>{{plant[1][1]}}</td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                        </thead>
-                    </table>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Название</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for plant in user_plants %}
+                            <tr>
+                                <th scope="row">{{plant[0] + 1}}</th>
+                                <td>{{plant[1][1]}}</td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+
+                        </table>
+                    </div>
                     <input type="submit" class="btn btn-primary" name="user_plants" value="Скачать"
                            id="user_plants">
                 </div>
                 <div class="col-md-6"> <!-- правый контейнер -->
-                    <input type="submit" class="btn btn-primary" name="user_hist" value="История действий"
+                    <label for="multi" class="form-label">Выберите типы действий:</label>
+                    <select class="form-select" multiple aria-label="Multiple select example" id="multi" oninput="multinput()">
+                        <option value="watering">Полив</option>
+                        <option value="planting">Посадка</option>
+                        <option value="tending">Уход</option>
+                        <option value="harvesting">Сбор урожая</option>
+                    </select>
+                    <div class="table-container">
+                        <table class="table" id="table">
+                            <thead>
+                            <tr>
+                                <th scope="col">Дата</th>
+                                <th scope="col">Тип действия</th>
+                                <th scope="col">Растение</th>
+                                <th scope="col">Кол-во</th>
+                                <th scope="col">Вес</th>
+                                <th scope="col">Комментарий</th>
+                            </tr>
+                            </thead>
+                            <tbody id="tbody">
+
+                            </tbody>
+                        </table>
+                    </div>
+                    <input type="button" class="btn btn-primary" name="user_hist" value="Скачать"
                            id="user_hist">
                 </div>
             </div>
@@ -35,4 +68,210 @@
 
     </div>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let history = {{history | tojson}};
+        const tbody = document.getElementById("tbody");
+
+        var en_to_ru = {
+            'watering': 'Полив',
+            'harvesting': 'Сбор урожая',
+            'planting': 'Посев',
+            'planting_seeds': 'Посев семян',
+            'planting_sprouts': 'Посадка ростков',
+            'tending': 'Уход',
+            'tending_weeding': 'Прополка',
+            'tending_fertilizing': 'Внесение удобрений',
+            'tending_pest_control': 'Борьба с вредителями',
+            'tending_transplant': 'Пересадка',
+            'tending_pruning': 'Подрезка',
+            '-': '-'
+        };
+        for (let i = 0; i < history.length; i++) {
+            var hist = history[i];
+            const tr = document.createElement("tr");
+
+            const date = document.createElement("td");
+            date.textContent = formatDate(new Date(hist[4]));
+            tr.appendChild(date)
+
+            const m_type = document.createElement("td");
+            m_type.textContent = en_to_ru[hist[2]];
+            tr.appendChild(m_type)
+
+            const plant = document.createElement("td");
+            plant.textContent = hist[1];
+            tr.appendChild(plant)
+
+            var addition = JSON.parse(hist[3]);
+
+
+            if (Object.keys(addition).includes("count")) {
+                const count = document.createElement("td");
+                count.textContent = addition["count"];
+                tr.appendChild(count)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("weight")) {
+                const weight = document.createElement("td");
+                weight.textContent = addition["weight"];
+                tr.appendChild(weight)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("comment")) {
+                const comment = document.createElement("td");
+                comment.textContent = addition["comment"];
+                tr.appendChild(comment)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            tbody.appendChild(tr);
+        }
+        document.getElementById("user_hist").addEventListener("click", function () {
+            var data = [];
+            $('#table tbody tr').each(function () {
+                var row = [];
+                $(this).find('td').each(function () {
+                    row.push($(this).text());
+                });
+                data.push(row);
+            });
+
+            $.ajax({
+                url: '/download_xlsx',
+                method: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                xhrFields: {
+                    responseType: 'blob'  // Set the response type to 'blob'
+                },
+                success: function (response) {
+                    // Create a Blob from the response data
+                    var blob = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+
+                    // Create a URL for the Blob and trigger the download
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'История.xlsx';
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            });
+        });
+
+
+
+
+    });
+    function formatDate(date) {
+
+            var dd = date.getDate();
+            if (dd < 10) dd = '0' + dd;
+
+            var mm = date.getMonth() + 1;
+            if (mm < 10) mm = '0' + mm;
+
+            var yy = date.getFullYear() % 100;
+            if (yy < 10) yy = '0' + yy;
+
+            return dd + '.' + mm + '.' + yy;
+        }
+
+    function multinput() {
+
+        const selectEl = document.getElementById("multi");
+        const selectedOptions = Array.from(selectEl.selectedOptions).map(option => option.value);
+        console.log(selectedOptions);
+
+        let history = {{history | tojson}};
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = '';
+
+        var en_to_ru = {
+            'watering': 'Полив',
+            'harvesting': 'Сбор урожая',
+            'planting': 'Посев',
+            'planting_seeds': 'Посев семян',
+            'planting_sprouts': 'Посадка ростков',
+            'tending': 'Уход',
+            'tending_weeding': 'Прополка',
+            'tending_fertilizing': 'Внесение удобрений',
+            'tending_pest_control': 'Борьба с вредителями',
+            'tending_transplant': 'Пересадка',
+            'tending_pruning': 'Подрезка',
+            '-': '-'
+        };
+        for (let i = 0; i < history.length; i++) {
+            var hist = history[i];
+            if (!selectedOptions.includes(hist[2])){
+                continue;
+            }
+            const tr = document.createElement("tr");
+
+            const date = document.createElement("td");
+            date.textContent = formatDate(new Date(hist[4]));
+            tr.appendChild(date)
+
+            const m_type = document.createElement("td");
+            m_type.textContent = en_to_ru[hist[2]];
+            tr.appendChild(m_type)
+
+            const plant = document.createElement("td");
+            plant.textContent = hist[1];
+            tr.appendChild(plant)
+
+            var addition = JSON.parse(hist[3]);
+
+
+            if (Object.keys(addition).includes("count")) {
+                const count = document.createElement("td");
+                count.textContent = addition["count"];
+                tr.appendChild(count)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("weight")) {
+                const weight = document.createElement("td");
+                weight.textContent = addition["weight"];
+                tr.appendChild(weight)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("comment")) {
+                const comment = document.createElement("td");
+                comment.textContent = addition["comment"];
+                tr.appendChild(comment)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            tbody.appendChild(tr);
+        }
+    }
+</script>
+
+</script>
 {% endblock %}
