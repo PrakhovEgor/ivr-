@@ -97,8 +97,8 @@ class Plants:
         cursor.close()
 
         cursor = self.mysql.connection.cursor()
-        cursor.execute(f"INSERT INTO user_data(user_id, plant_id, m_type) VALUES(%s, %s, %s)",
-                       (self.id, self.get_id_by_plantname(name), 'own'))
+        cursor.execute(f"INSERT INTO user_data(user_id, plant_id, m_type, date) VALUES(%s, %s, %s, %s)",
+                       (self.id, self.get_id_by_plantname(name), 'own', datetime.datetime.now().date()))
         self.mysql.connection.commit()
         cursor.close()
         return

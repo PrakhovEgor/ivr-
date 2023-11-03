@@ -1,3 +1,4 @@
-d = {'1': 1, "2": 2}
+def f(a, b, c):
+    pass
 
-print(d[1])
+f(a)

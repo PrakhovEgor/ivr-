@@ -23,21 +23,21 @@ from Plants_class import Plants
 
 locale.setlocale(locale.LC_TIME, 'ru_RU')
 
-log_config = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'null': {
-            'class': 'logging.NullHandler',
-        },
-    },
-    'root': {
-        'handlers': ['null'],
-        'level': 'DEBUG',
-    },
-}
-
-logging.config.dictConfig(log_config)
+# log_config = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'null': {
+#             'class': 'logging.NullHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['null'],
+#         'level': 'DEBUG',
+#     },
+# }
+#
+# logging.config.dictConfig(log_config)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bf&*gyusdgf^Sggf78y5sj'
 
@@ -138,7 +138,7 @@ def main():
         else:
             button_id = list(request.form.keys())[-1]
             session["date_to_edit"] = get_date_by_id(button_id, session.get("days_list"))
-            return redirect(f"/edit/{session.get('email')}")
+            return redirect(f"/edit")
 
     days_list = User_().get_date_list(session.get("timefrom"), session.get("timeto"))
     session["days_list"] = days_list
@@ -172,57 +172,40 @@ def day_history(m_type, day):
     for i in range(len(history_2)):
         history_2[i][3] = json.loads(history_2[i][3])
 
-    return render_template("day_history.html", status=status, history=history_2)
+    return render_template("day_history.html", status=status, history=history_2, user=session.get('email'),
+                           main="Журнал")
 
 
-@app.route('/edit/<user>', methods=["POST", "GET"])
-def edit(user):
-    if not session.get('status', 0):
-        session['status'] = 0
-    search = ""
-    plant_input_placeholder = ""
+@app.route('/edit/', methods=["POST", "GET"])
+def edit():
+    plants_to_plant = ""
+    plants = Plants_().get_plants_idname()
+    user_plants = Plants_().get_user_plants_id()
+    all_ids = sorted(list(set(x[0] for x in plants) | set(user_plants)))
+    all_plants = Plants_().get_plants_idname(id=all_ids)
 
-    plants = Plants_().get_plants_idname(search)
-    plants_to_plant = []
     if request.method == "POST":
         if "watering" in request.form:
-            session['list_status'] = 0
             session['status'] = 1
         elif "planting" in request.form:
-            session['list_status'] = 0
             session['status'] = 2
         elif "tending" in request.form:
-            session['list_status'] = 0
             session['status'] = 3
         elif "harvesting" in request.form:
-            session['list_status'] = 0
             session['status'] = 4
-
-        elif "list_all" in request.form:
-            session['list_status'] = 0
-            plants = Plants_().get_plants_idname(search)
-        elif "list_user" in request.form:
-            session['list_status'] = 1
-            plants = Plants_().get_plants_idname(search=search, include_users=True)
-
-        elif "search" in request.form:
-            search = request.form["plant_input"]
-            plants = Plants_().get_plants_idname(search)
-            plant_input_placeholder = search
-
+        elif "continue_p" in request.form:
+            all_plants, plants_to_plant = continue_act(all_plants, request.form)
         elif "save_w" in request.form:
             save_plants(request.form)
             for plant in get_id_from_request_form(request.form):
                 User_().save_action(plant, "watering", {})
             return redirect("/")
-
-        elif "continue_p" in request.form:
-            plants, plants_to_plant = continue_act(plants)
-            if session.get("list_status") == 1:
-                plants = Plants_().get_plants_idname(search=search, include_users=True)
-
         elif "save_p" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
             seeds = get_lst_of_type("seeds", request.form.items())
             sprouts = get_lst_of_type("sprouts", request.form.items())
             files = {}
@@ -234,19 +217,23 @@ def edit(user):
                     v.save(os.path.join(f"static/{session.get('email')}", name))
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
             for seed in seeds:
-                User_().save_action(seed[0], "planting_seeds", {"count": seed[1], "img_src": files.get(seed[0], '')})
+                User_().save_action(seed[0], "planting_seeds", {"count": seed[1], "img_src": files.get(seed[0], ''),
+                                                                'comment': comments.get(seed[0], "")})
             for sprout in sprouts:
                 User_().save_action(sprout[0], "planting_sprouts",
-                                    {"count": sprout[1], "img_src": files.get(sprout[0], '')})
+                                    {"count": sprout[1], "img_src": files.get(sprout[0]),
+                                     'comment': comments.get(sprout[0], "")})
             return redirect("/")
-
         elif "continue_t" in request.form:
-            plants, plants_to_plant = continue_act(plants)
-            if session.get("list_status") == 1:
-                plants = Plants_().get_plants_idname(search=search, include_users=True)
+            all_plants, plants_to_plant = continue_act(all_plants, request.form)
 
         elif "save_t" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
+
             temp = []
             for k, v in request.form.items():
                 id = k[:k.find('_')]
@@ -262,15 +249,17 @@ def edit(user):
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
 
             for el in temp:
-                User_().save_action(el[0], "tending_" + el[1], {"img_src": files.get(el[0], '')})
+                User_().save_action(el[0], "tending_" + el[1],
+                                    {"img_src": files.get(el[0], ''), "comment": comments.get(el[0], "")})
             return redirect("/")
-
         elif "continue_h" in request.form:
-            plants, plants_to_plant = continue_act(plants)
-            if session.get("list_status") == 1:
-                plants = Plants_().get_plants_idname(search=search, include_users=True)
+            all_plants, plants_to_plant = continue_act(all_plants, request.form)
         elif "save_h" in request.form:
             save_plants(request.form)
+            comments = {}
+            for k, v in request.form.items():
+                if k.startswith("comment"):
+                    comments[k.split("_")[1]] = v
             temp = defaultdict(list)
             for k, v in request.form.items():
                 id = k[:k.find('_')]
@@ -291,15 +280,11 @@ def edit(user):
 
             for el in temp:
                 User_().save_action(el[0], "harvesting",
-                                    {"count": el[1], "weight": el[2], "img_src": files.get(el[0], '')})
+                                    {"count": el[1], "weight": el[2], "img_src": files.get(el[0], ''),
+                                     "comment": comments.get(el[0], "")})
             return redirect("/")
-    try:
-        plants.sort(key=lambda x: x[2], reverse=True)
-    except:
-        pass
-    return render_template("edit.html", main="Журнал", status=session.get('status', 0), plants=plants,
-                           plant_input_placeholder=plant_input_placeholder, list_status=session.get('list_status', 1),
-                           plants_to_plant=plants_to_plant, user=session.get('email'))
+    return render_template("edit.html", main="Журнал", user=session.get('email'), status=session.get('status', 0),
+                           plants=all_plants, user_plants=user_plants, plants_to_plant=plants_to_plant)
 
 
 @app.route('/register/', methods=["POST", "GET"])
@@ -407,7 +392,6 @@ def user_plants():
             else:
                 session["alph_dir"] = "down"
                 user_plants.sort(key=lambda x: x[1], reverse=True)
-
         elif "date" in request.form:
             if session.get("date_dir", "down") == "down":
                 session["date_dir"] = "up"
@@ -452,7 +436,6 @@ def make_reminder():
             search = request.form["plant_input"]
             plant_input_placeholder = search
         elif "save" in request.form:
-            print(request.form)
             if request.form["name"] == "":
                 name_error = "Введите название"
             elif "accounts" not in request.form:
@@ -461,7 +444,7 @@ def make_reminder():
                 save_reminder(request.form)
                 return redirect("/reminders")
 
-    plants = Plants_().get_plants_idname(search=search, include_users=True)
+    plants = Plants_().get_plants_idname(include_users=True)
     accounts = User_().get_user_tg()
     return render_template("make_reminders.html", plants=plants, plant_input_placeholder=plant_input_placeholder,
                            cur_date=datetime.date.today(), cur_time=datetime.datetime.now().strftime("%H:%M"),
@@ -779,7 +762,7 @@ def get_id_from_request_form(r_form):
     for i in r_form:
         if i.isnumeric():
             plants_id.add(int(i))
-        elif i.split('_')[0].isnumeric():
+        elif i.split('_')[0].isnumeric() and i.split('_')[1] != "type" and i.split('_')[1] != "count":
             plants_id.add(int(i.split('_')[0]))
     return plants_id
 
@@ -807,12 +790,12 @@ def get_lst_of_type(typeof, d):
     return list(map(lambda x: list(x), temp.items()))
 
 
-def continue_act(plants):
+def continue_act(plants, d):
     # user_plants = Plants_().get_user_plants_id()
-    plants_id = get_id_from_request_form(request.form)
+    plants_id = get_id_from_request_form(d)
     # plants_to_save = plants_id - set(user_plants)
     # Plants_().save_plants_to_user(plants_to_save)
-    plants = add_checked_for_plants(plants, get_id_from_request_form(request.form))
+    plants = add_checked_for_plants(plants, plants_id)
     plants_to_plant = Plants_().get_plants_idname(id=plants_id, img=True)
     return plants, plants_to_plant
 
@@ -850,9 +833,11 @@ def save_reminder(d):
             id = 1
         else:
             id = file_data["data"][-1]["id"]
-        addition = {"id": id + 1, "email": session.get("email"), "name": info["name"], "m_type": en_to_ru[info["m_type"]],
-                    "tg_id": accounts, "plants": [x[1] for x in Plants_().get_plants_idname(id=plants)], "start_date": info["start_date"], "period": period,
-                    "comment": info["comment"]}
+        addition = {"id": id + 1, "email": session.get("email"), "name": info["name"],
+                    "m_type": en_to_ru[info["m_type"]],
+                    "tg_id": accounts, "plants": [x[1] for x in Plants_().get_plants_idname(id=plants)],
+                    "start_date": info["start_date"], "period": period,
+                    "comment": info["comment"], "plants_ids": plants}
         file_data["data"].append(addition)
         file.seek(0)
         json.dump(file_data, file, indent=4)
