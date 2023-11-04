@@ -4,9 +4,7 @@
 
 <div class="container">
     <form action="" method="POST" enctype="multipart/form-data">
-
         <div class="row g-3 align-items-center">
-
             <div class="col-auto">
                 <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="150"
                      width="auto">
@@ -16,85 +14,306 @@
             </div>
         </div>
         <br>
-        <form method="POST" action="">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <div class="row g-3 align-items-center">
-                    <div class="col-auto">
-                        <input type="date" id="time"
-                               name="timefrom" value={{time_from}}
-                               min="2000-01-01" max="2030-12-31">
-                        <input type="date" id="time"
-                               name="timeto" value={{time_to}}
-                               min="2000-01-01" max="2030-12-31">
-                    </div>
-
-
-                    <div class="col-auto">
-                        <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
-                        <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
-
-                    </div>
+        <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+            <div class="row g-3 align-items-center">
+                <div class="col-auto">
+                    <input type="date" id="time_from"
+                           name="timefrom" value="2023-01-01"
+                           min="2000-01-01" max="2030-12-31">
+                    <input type="date" id="time_to"
+                           name="timeto" value="2023-12-31"
+                           min="2000-01-01" max="2030-12-31">
                 </div>
-                <div class="row g-3 align-items-center">
-                    <div class="col-auto">
-                        <select class="form-select" aria-label="Тип действия" name="m_type">
-                            <option value="all" {{[
-                            'selected', '', '', '', ''][selected]}}>Все варианты</option>
-                            <option value="watering" {{[
-                            '', 'selected', '', '', ''][selected]}}>Полив</option>
-                            <option value="planting" {{[
-                            '', '', 'selected', '', ''][selected]}}>Посадка</option>
-                            <option value="tending" {{[
-                            '', '', '', 'selected', ''][selected]}}>Уход</option>
-                            <option value="harvesting" {{[
-                            '', '', '', '', 'selected'][selected]}}>Сбор урожая</option>
-
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <input type="submit" class="btn btn-success btn-sm" name="m_type_btn" value="Выбрать">
-                    </div>
+                <div class="col-auto">
+                    <input type="button" class="btn btn-success btn-sm" name="date_picker" value="Выбрать"
+                           onclick="multinput()" id="date_picker">
+                    <input type="button" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить"
+                           onclick="reset_date()">
                 </div>
-
-
             </div>
-        </form>
-        {% for i in history %}
-        <div class="container mt-4">
-            {% if i[4] != None %}
-            <div class="row g-3 align-items-center border rounded p-3">
+            <div class="row g-3 align-items-center">
                 <div class="col-auto">
-                    <h1 class="display-6">{{ i[4].strftime("%B %d, %a") }}</h1>
+                    <label for="multi" class="form-label">Выберите типы действий:</label>
+                    <select class="form-select" multiple aria-label="Multiple select example" id="multi"
+                            oninput="multinput()">
+                        <option value="watering" selected>Полив</option>
+                        <option value="planting" selected>Посадка</option>
+                        <option value="tending" selected>Уход</option>
+                        <option value="harvesting" selected>Сбор урожая</option>
+                    </select>
                 </div>
-                <div class="col-auto">
-                    <h1 class="display-6">{{ i[2] }}</h1>
-                </div>
-
-                {% if i[-2]["count"] %}
-                <div class="col-auto">
-                    <label class="fw-bold">Кол-во: </label>
-                    <label>{{i[-2]["count"]}}</label>
-                </div>
-                {% endif %}
-
-                {% if i[-2]["weight"] %}
-                <div class="col-auto">
-                    <label class="fw-bold">Вес в кг:</label>
-                    <label>{{i[-2]["weight"]}}</label>
-
-                </div>
-                {% endif %}
-
-                {% if i[-2]["img_src"] %}
-                <div class="col-auto">
-                    <img src="/{{ i[-2]['img_src']}}" class="img rounded" alt="Растение" height="200">
-                </div>
-                {% endif %}
             </div>
-            {% endif %}
         </div>
-        {% endfor %}
+        <div class="table-container">
+            <table class="table" id="table">
+                <thead>
+                <tr>
+                    <th scope="col">Дата</th>
+                    <th scope="col">Тип действия</th>
+                    <th scope="col">Кол-во</th>
+                    <th scope="col">Вес, кг</th>
+                    <th scope="col">Комментарий</th>
+                    <th scope="col">Фото</th>
+                </tr>
+                </thead>
+                <tbody id="tbody">
+
+                </tbody>
+            </table>
+        </div>
+        <input type="button" class="btn btn-primary" name="user_hist" value="Скачать"
+               id="user_hist">
     </form>
 </div>
+<div style="display:none;" id="param">plant | {{ name }}</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        let history = {{history | tojson}};
+        const tbody = document.getElementById("tbody");
+
+        var en_to_ru = {
+            'watering': 'Полив',
+            'harvesting': 'Сбор урожая',
+            'planting': 'Посев',
+            'planting_seeds': 'Посев семян',
+            'planting_sprouts': 'Посадка ростков',
+            'tending': 'Уход',
+            'tending_weeding': 'Прополка',
+            'tending_fertilizing': 'Внесение удобрений',
+            'tending_pest_control': 'Борьба с вредителями',
+            'tending_transplant': 'Пересадка',
+            'tending_pruning': 'Подрезка',
+            '-': '-'
+        };
+        for (let i = 0; i < history.length; i++) {
+            var hist = history[i];
+            const tr = document.createElement("tr");
+
+            const date = document.createElement("td");
+            date.textContent = formatDate(new Date(hist[4]));
+            tr.appendChild(date)
+
+            const m_type = document.createElement("td");
+            m_type.textContent = en_to_ru[hist[2]];
+            tr.appendChild(m_type)
+
+            const param = document.getElementById("param").textContent.split(" | ");
+            console.log(param);
+            if (param[0] !== "plant") {
+                console.log(1);
+                const plant = document.createElement("td");
+                plant.textContent = hist[1];
+                tr.appendChild(plant)
+            }
+
+            var addition = JSON.parse(hist[3]);
+
+
+            if (Object.keys(addition).includes("count")) {
+                const count = document.createElement("td");
+                count.textContent = addition["count"];
+                tr.appendChild(count)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("weight")) {
+                const weight = document.createElement("td");
+                weight.textContent = addition["weight"];
+                tr.appendChild(weight)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("comment")) {
+                const comment = document.createElement("td");
+                comment.textContent = addition["comment"];
+                tr.appendChild(comment)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+            if (Object.keys(addition).includes("img_src") && addition["img_src"] != null && addition["img_src"] !== "") {
+                console.log("img_src", addition);
+                const picture = document.createElement("td");
+                const img = document.createElement("img");
+                img.src = "/" + addition["img_src"];
+                img.height=200
+                picture.appendChild(img);
+                tr.appendChild(picture);
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+            tbody.appendChild(tr);
+        }
+        document.getElementById("user_hist").addEventListener("click", function () {
+            var data = [];
+            $('#table tbody tr').each(function () {
+                var row = [];
+                $(this).find('td').each(function () {
+                    row.push($(this).text());
+                });
+                data.push(row);
+
+            });
+            data.push(document.getElementById("param").textContent.split(" | "));
+            console.log("data", JSON.stringify(data));
+
+            $.ajax({
+                url: `/download_xlsx`,
+                method: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                xhrFields: {
+                    responseType: 'blob'  // Set the response type to 'blob'
+                },
+                success: function (response) {
+                    // Create a Blob from the response data
+                    var blob = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+
+                    // Create a URL for the Blob and trigger the download
+                    console.log(data);
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${data[data.length - 1][1]}.xlsx`;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
+            });
+        });
+    });
+    function formatDate(date) {
+
+            var dd = date.getDate();
+            if (dd < 10) dd = '0' + dd;
+
+            var mm = date.getMonth() + 1;
+            if (mm < 10) mm = '0' + mm;
+
+            var yy = date.getFullYear() % 100;
+            if (yy < 10) yy = '0' + yy;
+
+            return dd + '.' + mm + '.' + yy;
+        }
+
+    function multinput() {
+
+        const selectEl = document.getElementById("multi");
+        const selectedOptions = Array.from(selectEl.selectedOptions).map(option => option.value);
+        const start_date = new Date(document.getElementById("time_from").value);
+        const last_date = new Date(document.getElementById("time_to").value);
+
+        let history = {{history | tojson}};
+        const tbody = document.getElementById("tbody");
+        tbody.innerHTML = '';
+
+        var en_to_ru = {
+            'watering': 'Полив',
+            'harvesting': 'Сбор урожая',
+            'planting': 'Посев',
+            'planting_seeds': 'Посев семян',
+            'planting_sprouts': 'Посадка ростков',
+            'tending': 'Уход',
+            'tending_weeding': 'Прополка',
+            'tending_fertilizing': 'Внесение удобрений',
+            'tending_pest_control': 'Борьба с вредителями',
+            'tending_transplant': 'Пересадка',
+            'tending_pruning': 'Подрезка',
+            '-': '-'
+        };
+        for (let i = 0; i < history.length; i++) {
+            var hist = history[i];
+            const temp_date = new Date(hist[4])
+            if (!selectedOptions.includes(hist[2].split('_')[0]) || ((temp_date < start_date) || (temp_date > last_date))){
+                continue;
+            }
+            const tr = document.createElement("tr");
+
+            const date = document.createElement("td");
+            date.textContent = formatDate(new Date(hist[4]));
+            tr.appendChild(date)
+
+            const m_type = document.createElement("td");
+            m_type.textContent = en_to_ru[hist[2]];
+            tr.appendChild(m_type)
+
+            const param = document.getElementById("param").textContent.split(" | ");
+            console.log(param);
+            if (param[0] !== "plant") {
+                console.log(1);
+                const plant = document.createElement("td");
+                plant.textContent = hist[1];
+                tr.appendChild(plant)
+            }
+
+            var addition = JSON.parse(hist[3]);
+
+
+            if (Object.keys(addition).includes("count")) {
+                const count = document.createElement("td");
+                count.textContent = addition["count"];
+                tr.appendChild(count)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("weight")) {
+                const weight = document.createElement("td");
+                weight.textContent = addition["weight"];
+                tr.appendChild(weight)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            if (Object.keys(addition).includes("comment")) {
+                const comment = document.createElement("td");
+                comment.textContent = addition["comment"];
+                tr.appendChild(comment)
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+            if (Object.keys(addition).includes("img_src") && addition["img_src"] != null && addition["img_src"] !== "") {
+                console.log("img_src", addition["img_src"]);
+                const picture = document.createElement("td");
+                const img = document.createElement("img");
+                img.src = "/" + addition["img_src"];
+                img.height=200
+                picture.appendChild(img);
+                tr.appendChild(picture);
+            } else {
+                const none = document.createElement("td");
+                none.textContent = "";
+                tr.appendChild(none);
+            }
+
+            tbody.appendChild(tr);
+        }
+    }
+    function reset_date(){
+        var start_date = document.getElementById("time_from");
+        var last_date = document.getElementById("time_to");
+        start_date.value = "2023-01-01";
+        last_date.value = "2023-12-31";
+        const btn = document.getElementById("date_picker");
+        btn.click();
+
+    }
+</script>
 
 {% endblock %}

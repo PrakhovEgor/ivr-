@@ -12,6 +12,7 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-md-6"> <!-- левый контейнер -->
+                    <h1 class="display-6">Ваши растения</h1>
                     <div class="table-container">
                         <table class="table">
                             <thead>
@@ -35,13 +36,26 @@
                            id="user_plants">
                 </div>
                 <div class="col-md-6"> <!-- правый контейнер -->
+                    <h1 class="display-6">Ваши действия</h1>
                     <label for="multi" class="form-label">Выберите типы действий:</label>
                     <select class="form-select" multiple aria-label="Multiple select example" id="multi" oninput="multinput()">
-                        <option value="watering">Полив</option>
-                        <option value="planting">Посадка</option>
-                        <option value="tending">Уход</option>
-                        <option value="harvesting">Сбор урожая</option>
+                        <option value="watering" selected>Полив</option>
+                        <option value="planting" selected>Посадка</option>
+                        <option value="tending" selected>Уход</option>
+                        <option value="harvesting" selected>Сбор урожая</option>
                     </select>
+                    <label for="dates" class="form-label">Выберите даты:</label>
+                    <div class="container p-2" id="dates">
+                        <input type="date" id="time_from"
+                               name="timefrom" value="2023-01-01"
+                               min="2000-01-01" max="2030-12-31">
+                        <input type="date" id="time_to"
+                               name="timeto" value="2023-12-31"
+                               min="2000-01-01" max="2030-12-31">
+                        <input type="button" class="btn btn-success btn-sm" name="date_picker" value="Выбрать" onclick="multinput()" id="date_picker">
+                        <input type="button" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить" onclick="reset_date()">
+                    </div>
+
                     <div class="table-container">
                         <table class="table" id="table">
                             <thead>
@@ -50,7 +64,7 @@
                                 <th scope="col">Тип действия</th>
                                 <th scope="col">Растение</th>
                                 <th scope="col">Кол-во</th>
-                                <th scope="col">Вес</th>
+                                <th scope="col">Вес, кг</th>
                                 <th scope="col">Комментарий</th>
                             </tr>
                             </thead>
@@ -68,7 +82,7 @@
 
     </div>
 </form>
-
+<div style="display:none;" id="param">all | История</div>
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         let history = {{history | tojson}};
@@ -100,9 +114,13 @@
             m_type.textContent = en_to_ru[hist[2]];
             tr.appendChild(m_type)
 
-            const plant = document.createElement("td");
-            plant.textContent = hist[1];
-            tr.appendChild(plant)
+            const param = document.getElementById("param").textContent;
+            if (param !== "plant") {
+                console.log(1);
+                const plant = document.createElement("td");
+                plant.textContent = hist[1];
+                tr.appendChild(plant)
+            }
 
             var addition = JSON.parse(hist[3]);
 
@@ -136,7 +154,6 @@
                 none.textContent = "";
                 tr.appendChild(none);
             }
-
             tbody.appendChild(tr);
         }
         document.getElementById("user_hist").addEventListener("click", function () {
@@ -147,10 +164,13 @@
                     row.push($(this).text());
                 });
                 data.push(row);
+
             });
+            data.push(document.getElementById("param").textContent);
+            console.log("data", JSON.stringify(data));
 
             $.ajax({
-                url: '/download_xlsx',
+                url: `/download_xlsx`,
                 method: 'POST',
                 data: JSON.stringify(data),
                 contentType: 'application/json',
@@ -173,10 +193,6 @@
                 }
             });
         });
-
-
-
-
     });
     function formatDate(date) {
 
@@ -196,7 +212,8 @@
 
         const selectEl = document.getElementById("multi");
         const selectedOptions = Array.from(selectEl.selectedOptions).map(option => option.value);
-        console.log(selectedOptions);
+        const start_date = new Date(document.getElementById("time_from").value);
+        const last_date = new Date(document.getElementById("time_to").value);
 
         let history = {{history | tojson}};
         const tbody = document.getElementById("tbody");
@@ -218,7 +235,8 @@
         };
         for (let i = 0; i < history.length; i++) {
             var hist = history[i];
-            if (!selectedOptions.includes(hist[2])){
+            const temp_date = new Date(hist[4])
+            if (!selectedOptions.includes(hist[2].split('_')[0]) || ((temp_date < start_date) || (temp_date > last_date))){
                 continue;
             }
             const tr = document.createElement("tr");
@@ -231,9 +249,13 @@
             m_type.textContent = en_to_ru[hist[2]];
             tr.appendChild(m_type)
 
-            const plant = document.createElement("td");
-            plant.textContent = hist[1];
-            tr.appendChild(plant)
+            const param = document.getElementById("param").textContent;
+            if (param !== "plant") {
+                console.log(1);
+                const plant = document.createElement("td");
+                plant.textContent = hist[1];
+                tr.appendChild(plant)
+            }
 
             var addition = JSON.parse(hist[3]);
 
@@ -271,7 +293,15 @@
             tbody.appendChild(tr);
         }
     }
+    function reset_date(){
+        var start_date = document.getElementById("time_from");
+        var last_date = document.getElementById("time_to");
+        start_date.value = "2023-01-01";
+        last_date.value = "2023-12-31";
+        const btn = document.getElementById("date_picker");
+        btn.click();
+
+    }
 </script>
 
-</script>
 {% endblock %}

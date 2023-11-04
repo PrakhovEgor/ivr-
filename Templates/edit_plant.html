@@ -2,48 +2,45 @@
 
 {% block content %}
 <div class="container">
-<form action="" method="POST" enctype="multipart/form-data">
-<div class="row g-3 align-items-center">
+    <form action="" method="POST" enctype="multipart/form-data">
+        <div class="row g-3 align-items-center">
 
-    <div class="col-auto">
-        <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="200"
-             width="auto">
-        <input type="file" name="image" accept=".png,.jpg,.jpeg">
-    </div>
-
-
+            <div class="col-auto">
+                <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="200"
+                     width="auto">
+                <input type="file" name="image" accept=".png,.jpg,.jpeg">
+            </div>
 
 
-    <div class="col-auto">
-        <h1 class="display-5">{{ name }}</h1>
-    </div>
+            <div class="col-auto">
+                <h1 class="display-5">{{ name }}</h1>
+            </div>
 
 
+        </div>
+        <div class="col-auto">
+            <table class="table table-striped-columns">
+                <tbody>
+                {% for k, v in description.items() %}
+                <tr>
+                    <td>{{ k }}</td>
+                    <td><textarea type="text" class="form-control" name="{{k}}">{{v}}</textarea></td>
 
-</div>
-<div class="col-auto">
-        <table class="table table-striped-columns">
-            <tbody>
-            {% for k, v in description.items() %}
-            <tr>
-                <td>{{ k }}</td>
-                <td><textarea type="text" class="form-control" name="{{k}}">{{v}}</textarea></td>
+                </tr>
+                {% endfor %}
 
-            </tr>
-            {% endfor %}
+                {% if "Доп. информация" not in description.keys() %}
+                <tr>
+                    <td>Доп. информация</td>
+                    <td><textarea type="text" class="form-control" name="extra_infromation">{{v}}</textarea></td>
 
-            {% if "Доп. информация" not in description.keys() %}
-            <tr>
-                <td>Доп. информация</td>
-                <td><textarea type="text" class="form-control" name="extra_infromation">{{v}}</textarea></td>
+                </tr>
+                {% endif %}
 
-            </tr>
-            {% endif %}
-
-            </tbody>
-        </table>
-    </div>
-    <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
-</form>
+                </tbody>
+            </table>
+        </div>
+        <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
+    </form>
 </div>
 {% endblock %}

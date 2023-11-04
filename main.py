@@ -152,30 +152,15 @@ def main():
 
 @app.route('/day_history/<m_type>/<day>', methods=["POST", "GET"])
 def day_history(m_type, day):
-    d = {"watering": 1,
-         "planting": 2,
-         "tending": 3,
-         "harvesting": 4}
-    status = d[m_type]
-    # m_type = m_type
-    history = User_().get_day_history(day)
-
-    if request.method == "POST":
-        if "watering" in request.form:
-            status = d['watering']
-        elif "planting" in request.form:
-            status = d['planting']
-        elif "tending" in request.form:
-            status = d['tending']
-        elif "harvesting" in request.form:
-            status = d['harvesting']
-
-    history_2 = sort_by_m_type(history, status)
-    for i in range(len(history_2)):
-        history_2[i][3] = json.loads(history_2[i][3])
-
-    return render_template("day_history.html", status=status, history=history_2, user=session.get('email'),
-                           main="Журнал")
+    history = list(User_().get_day_history(day))
+    ids = [x[1] for x in history]
+    plants = [Plants_().get_plants_idname(id=[x])[0][1] for x in ids]
+    for i in range(len(history)):
+        history[i] = list(history[i])
+        history[i][1] = plants[i]
+    print(history)
+    return render_template("day_history.html", history=history, user=session.get('email'),
+                           main="Журнал", day=day)
 
 
 @app.route('/edit/', methods=["POST", "GET"])
@@ -637,43 +622,44 @@ def history(plant_id):
         session["timeto"] = end_date
         session["date_changed"] = 1
 
-    if request.method == "POST":
-        if "date_picker" in request.form:
-            start_date = datetime.datetime.strptime(request.form["timefrom"], "%Y-%m-%d")
-            end_date = datetime.datetime.strptime(request.form["timeto"], "%Y-%m-%d")
-            session["date_changed"] = 1
-            session["timefrom"] = start_date
-            session["timeto"] = end_date
-
-        elif "date_reset" in request.form:
-            cur_date = datetime.datetime.now().date()
-            start_date = cur_date - datetime.timedelta(days=3)
-            end_date = cur_date + datetime.timedelta(days=3)
-            session["timefrom"] = start_date
-            session["timeto"] = end_date
-        elif "m_type_btn" in request.form:
-            m_type = request.form["m_type"]
-            d = {"all": 0,
-                 "watering": 1,
-                 "planting": 2,
-                 "tending": 3,
-                 "harvesting": 4}
-            selected = d[m_type]
+    # if request.method == "POST":
+    #     if "date_picker" in request.form:
+    #         start_date = datetime.datetime.strptime(request.form["timefrom"], "%Y-%m-%d")
+    #         end_date = datetime.datetime.strptime(request.form["timeto"], "%Y-%m-%d")
+    #         session["date_changed"] = 1
+    #         session["timefrom"] = start_date
+    #         session["timeto"] = end_date
+    #
+    #     elif "date_reset" in request.form:
+    #         cur_date = datetime.datetime.now().date()
+    #         start_date = cur_date - datetime.timedelta(days=3)
+    #         end_date = cur_date + datetime.timedelta(days=3)
+    #         session["timefrom"] = start_date
+    #         session["timeto"] = end_date
+    # elif "m_type_btn" in request.form:
+    #     m_type = request.form["m_type"]
+    #     d = {"all": 0,
+    #          "watering": 1,
+    #          "planting": 2,
+    #          "tending": 3,
+    #          "harvesting": 4}
+    #     selected = d[m_type]
 
     history = Plants_().get_plant_history(plant_id, m_type=m_type)
-    new_his = []
-    for i in history:
-        timefrom = parse_date_string(session["timefrom"])
-        timeto = parse_date_string(session["timeto"])
-        if type(timefrom) == datetime.datetime:
-            timefrom = timefrom.date()
-        if type(timeto) == datetime.datetime:
-            timeto = timeto.date()
-        if i[-2] >= timefrom and i[-2] <= timeto:
-            new_his.append(i)
-    new_his.sort(key=lambda x: x[4])
+    # new_his = []
+    # for i in history:
+    #     timefrom = parse_date_string(session["timefrom"])
+    #     timeto = parse_date_string(session["timeto"])
+    #     if type(timefrom) == datetime.datetime:
+    #         timefrom = timefrom.date()
+    #     if type(timeto) == datetime.datetime:
+    #         timeto = timeto.date()
+    #     if i[-2] >= timefrom and i[-2] <= timeto:
+    #         new_his.append(i)
+    # new_his.sort(key=lambda x: x[4])
+    # print(new_his)
 
-    return render_template("history.html", user=session.get("email", 0), history=new_his, name=name, filename=filename,
+    return render_template("history.html", user=session.get("email", 0), history=history, name=name, filename=filename,
                            time_from=parse_date_string(session.get("timefrom")),
                            time_to=parse_date_string(session.get("timeto")),
                            selected=selected)
@@ -782,21 +768,30 @@ def download_xlsx():
     workbook = Workbook()
     worksheet = workbook.active
 
-    worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес', 'Комментарий'])
-
+    if data[-1][0] == "plant":
+        filename = f"{data[-1][1]}.xlsx"
+        worksheet.append(['Дата', 'Тип действия', 'Кол-во', 'Вес, кг', 'Комментарий'])
+    elif data[-1][0] == "date":
+        filename = f"{data[-1][1]}.xlsx"
+        worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес, кг', 'Комментарий'])
+    else:
+        filename = f"История.xlsx"
+        worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес, кг', 'Комментарий'])
+    print(filename)
     # Запишите данные из JSON в книгу Excel
-    for row in data:
+
+    for row in data[:-1]:
         worksheet.append(row)
 
     # Создайте буфер для хранения данных XLSX
     excel_file = BytesIO()
     workbook.save(excel_file)
-    excel_file .seek(0)
+    excel_file.seek(0)
 
     # Определите имя файла и заголовки для HTTP-ответа
-    filename = 'История.xlsx'
+
     quoted_filename = quote(filename.encode('utf-8'))
-    response = Response(excel_file .getvalue(),
+    response = Response(excel_file.getvalue(),
                         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response.headers["Content-Disposition"] = f"attachment; filename={quoted_filename}"
     print(response)

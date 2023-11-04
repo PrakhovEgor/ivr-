@@ -155,9 +155,9 @@ class Plants:
         cur.close()
         res = [list(x) for x in res]
 
-        for i in range(len(res)):
-            res[i][-3] = json.loads(res[i][-3])
-            res[i][2] = d.get(res[i][2])
+        # for i in range(len(res)):
+        #     res[i][-3] = json.loads(res[i][-3])
+        #     res[i][2] = d.get(res[i][2])
         return res
 
     def get_user_tg(self, id=False):
