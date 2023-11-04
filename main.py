@@ -57,9 +57,6 @@ app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024
 mail = Mail(app)
 mysql = MySQL(app)
 
-plant_params = ['Местоположение', 'Размножение', 'Группа', 'Зимостойкость', 'Применение', 'Выращивание',
-                'Требования к почве', 'Доп. информация']
-
 en_to_ru = {
     'watering': 'Полив',
     'harvesting': 'Сбор урожая',
@@ -160,7 +157,7 @@ def day_history(m_type, day):
         history[i][1] = plants[i]
     print(history)
     return render_template("day_history.html", history=history, user=session.get('email'),
-                           main="Журнал", day=day)
+                           main="Журнал", day=datetime.datetime.strptime(day, '%Y-%m-%d'))
 
 
 @app.route('/edit/', methods=["POST", "GET"])
@@ -530,9 +527,11 @@ def add_plants():
 @app.route('/plant/<plant_id>', methods=['GET', 'POST'])
 def plant(plant_id):
     info = list(Plants_().get_plants_idname(id=plant_id)[0])
+
     description = json.loads(
-        User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("extra_infromation",
-                                                                                         "Доп. информация"))
+        User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("\\xa0", " ").replace("\\xa0",
+                                                                                                               " ").replace(
+            "\\r", " ").replace("\\n", " ").replace("extra_infromation", "Доп. информация"))
 
     name = info[1]
 
@@ -564,11 +563,10 @@ def plant(plant_id):
 def edit_plant(plant_id):
     info = list(Plants_().get_plants_idname(id=plant_id)[0])
     description = json.loads(
-        User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("extra_infromation",
-                                                                                         "Доп. информация"))
-    for i in plant_params:
-        if i not in description.keys():
-            description[i] = ''
+        User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("\\xa0", " ").replace("\\xa0",
+                                                                                                               " ").replace(
+            "\\r", " ").replace("\\n", " ").replace("extra_infromation", "Доп. информация"))
+
     name = info[1]
 
     if not os.path.isdir('static/' + session.get('email')):

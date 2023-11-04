@@ -2,90 +2,53 @@
 
 {% block content %}
 <div class="container">
-<form action="" method="POST" enctype="multipart/form-data">
-    <div class="container-sm">
-        <h1 class="display-4">Создание своего растения</h1>
-        <div class="row g-3">
-            <div class="col-auto">
-                <label class="col-form-label">Название:</label>
-            </div>
-            <div class="col-auto">
-                <input type="text" class="form-control" placeholder="Роза белая" name="name">
-            </div>
-
-            {% if name_error%}
-            <div class="col-auto">
-            <div class="alert alert-danger" role="alert">
-                {{ name_error }}
-            </div>
+    <form action="" method="POST" enctype="multipart/form-data">
+        <div class="container-sm">
+            <h1 class="display-4">Создание своего растения</h1>
+            <div class="row g-3">
+                <div class="col-auto">
+                    <label class="col-form-label">Название:</label>
                 </div>
-            {% endif %}
+                <div class="col-auto">
+                    <input type="text" class="form-control" placeholder="Роза белая" name="name">
+                </div>
+
+                {% if name_error%}
+                <div class="col-auto">
+                    <div class="alert alert-danger" role="alert">
+                        {{ name_error }}
+                    </div>
+                </div>
+                {% endif %}
 
 
+            </div>
+            <br>
+
+            <div class="input-group mb-3 ">
+                <!--            <label class="input-group-text" for="inputGroupFile01">Фото:</label>-->
+                <!--            <input type="file" class="form-control" id="inputGroupFile01" name="image">-->
+
+
+                <input type="file" name="image" accept=".png,.jpg,.jpeg">
+            </div>
+            <h1 class="display-6">Дополнительная информация(в формате таблицы):</h1><br>
+            <div class="col-auto">
+                <table class="table table-striped-columns">
+
+                    <tbody>
+                    <tr>
+                        <td>Доп. информация</td>
+                        <td><textarea class="form-control" aria-label="With textarea"
+                                      name="extra_information"></textarea>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
         </div>
-        <br>
-
-        <div class="input-group mb-3 ">
-            <!--            <label class="input-group-text" for="inputGroupFile01">Фото:</label>-->
-            <!--            <input type="file" class="form-control" id="inputGroupFile01" name="image">-->
-
-
-            <input type="file" name="image" accept=".png,.jpg,.jpeg">
-        </div>
-        <h1 class="display-6">Дополнительная информация(в формате таблицы):</h1><br>
-        <div class="col-auto">
-            <table class="table table-striped-columns">
-                <!--            <thead>-->
-                <!--            <tr>-->
-                <!--                <th scope="col">#</th>-->
-                <!--                <th scope="col">Колонка 1</th>-->
-                <!--                <th scope="col">Колонка 2</th>-->
-
-                <!--            </tr>-->
-                <!--            </thead>-->
-                <tbody>
-                <tr>
-                    <td>Местоположение</td>
-                    <td><input type="text" class="form-control" name="location"></td>
-
-                </tr>
-                <tr>
-                    <td>Размножение</td>
-                    <td><input type="text" class="form-control" name="reproduction"></td>
-                </tr>
-                <tr>
-                    <td>Группа</td>
-                    <td><input type="text" class="form-control" name="group"></td>
-                </tr>
-                <tr>
-                    <td>Зимнестойкость</td>
-                    <td><input type="text" class="form-control" name="winterness"></td>
-                </tr>
-                <tr>
-                    <td>Применение</td>
-                    <td><input type="text" class="form-control" name="application"></td>
-                </tr>
-                <tr>
-                    <td>Выращивание</td>
-                    <td><input type="text" class="form-control" name="cultivation"></td>
-                </tr>
-                <tr>
-                    <td>Требоавния к почве</td>
-                    <td><input type="text" class="form-control" name="soil"></td>
-                </tr>
-
-
-                <tr>
-                    <td>Доп. информация</td>
-                    <td><textarea class="form-control" aria-label="With textarea" name="extra_information"></textarea>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-        <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
-    </div>
-</form>
+    </form>
 </div>
 
 {% endblock %}

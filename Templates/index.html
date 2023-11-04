@@ -10,52 +10,64 @@
     }
 </style>
 
-<div class="d-flex justify-content-center">
+<div class="container-fluid">
     <form method="POST" action="">
         <div class="container p-2">
-            <input type="date" id="time_from"
-                   name="timefrom" value={{time_from}}
-                   min="2000-01-01" max="2030-12-31">
-            <input type="date" id="time_to"
-                   name="timeto" value={{time_to}}
-                   min="2000-01-01" max="2030-12-31">
-            <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
-            <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
+            <div class="row">
+                <div class="col-12 col-md-6">
+                    <label for="time_from" class="form-label">Начальная дата:</label>
+                    <input type="date" id="time_from" name="timefrom" value={{time_from}} min="2000-01-01"
+                           max="2030-12-31" class="form-control">
+                </div>
+                <div class="col-12 col-md-6">
+                    <label for="time_to" class="form-label">Конечная дата:</label>
+                    <input type="date" id="time_to" name="timeto" value={{time_to}} min="2000-01-01" max="2030-12-31"
+                           class="form-control">
+                </div>
+            </div>
+            <div class="text-center mt-2">
+                <input type="submit" class="btn btn-success btn-sm" name="date_picker" value="Выбрать">
+                <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
+            </div>
         </div>
 
 
         {% for day in day_list %}
-        <div class="d-flex gap-2 justify-content-center py-5">
-
-            <h1 class="display-6">{{ day[1].strftime("%B %d, %a") }}</h1>
-
-
-            <input type="submit" class="btn btn-success m-2" name={{day[0]}} value="+">
-
-            <button type="submit" name="watering" class="test" value={{day[1]}}>
+        <div class="row justify-content-center py-3">
+            <div class="col-auto">
+                <h1 class="display-6">{{ day[1].strftime("%B %d, %a") }}</h1>
+            </div>
+            <div class="col-auto">
+                <button type="submit" name={{day[0]}} class="test">
+                    <img width="45" height="45" src="/static/icons8-плюс-64.png" alt="">
+                </button>
+            </div>
+            <div class="col-auto">
+                <button type="submit" name="watering" class="test" value={{day[1]}}>
             <span class="badge d-flex align-items-center p-2 text-primary-emphasis bg-primary-subtle   rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-watering-50.png" alt="">{{ day[2] }}
             </span>
-            </button>
+                </button>
 
-            <button type="submit" name="planting" class="test" value={{day[1]}}>
+                <button type="submit" name="planting" class="test" value={{day[1]}}>
             <span class="badge d-flex align-items-center p-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-planting-50.png" alt="">{{ day[3] }}
             </span>
-            </button>
+                </button>
 
-            <button type="submit" name="tending" class="test" value={{day[1]}}>
+                <button type="submit" name="tending" class="test" value={{day[1]}}>
             <span class="badge d-flex align-items-center p-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-plant-care-50.png" alt="">{{ day[5] }}
             </span>
-            </button>
+                </button>
 
-            <button type="submit" name="harvesting" class="test" value={{day[1]}}>
+                <button type="submit" name="harvesting" class="test" value={{day[1]}}>
               <span class="badge d-flex align-items-center p-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-harvesting-32.png" alt="">
                 {{ day[4] }}
               </span>
-            </button>
+                </button>
+            </div>
 
         </div>
         {% endfor %}

@@ -3,7 +3,7 @@ import json
 import time
 import requests
 
-bot = telebot.TeleBot('6162063865:AAEEuoQt4p_HjdUyKSN0M-eQbo48IiR84sc')
+bot = telebot.TeleBot('6515349176:AAEOpCVm_bJhXW2rAYZ3OtAwNUtggau3pEE')
 
 
 @bot.message_handler(commands=['start'])

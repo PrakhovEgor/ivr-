@@ -2,10 +2,18 @@
 
 
 {% block content %}
+<style>
+    .table-container {
+        height: 400px; /* Adjust the height as needed */
+        overflow-y: auto;
+    }
+</style>
 <form action="" method="POST">
-    <h1 class="display-4">{{ date }}</h1>
-    <div class="d-flex flex-column align-items-center">
 
+    <div class="d-flex flex-column align-items-center">
+        <div class="col-auto">
+            <h1 class="display-4">{{ day.strftime("%B %d, %a") }}</h1>
+        </div>
         <div class="row g-3 align-items-center">
             <div class="col-auto">
                 <label for="multi" class="form-label">Выберите типы действий:</label>
@@ -34,7 +42,6 @@
                 </tr>
                 </thead>
                 <tbody id="tbody">
-
                 </tbody>
             </table>
         </div>
@@ -127,6 +134,7 @@
                 const picture = document.createElement("td");
                 const img = document.createElement("img");
                 img.src = "/" + addition["img_src"];
+                img.height = "100";
                 picture.appendChild(img);
                 tr.appendChild(picture);
             } else {
@@ -273,6 +281,7 @@
                 const picture = document.createElement("td");
                 const img = document.createElement("img");
                 img.src = "/" + addition["img_src"];
+                img.height = "100";
                 picture.appendChild(img);
                 tr.appendChild(picture);
             } else {
