@@ -150,7 +150,6 @@ def day_history(m_type, day):
     for i in range(len(history)):
         history[i] = list(history[i])
         history[i][1] = plants[i]
-    print(history)
     return render_template("day_history.html", history=history, user=session.get('email'),
                            main="Журнал", day=datetime.datetime.strptime(day, '%Y-%m-%d'))
 
@@ -393,6 +392,7 @@ def reminders():
             for k, v in request.form.items():
                 if k.startswith("delete"):
                     delete_reminder(k.split("_")[1])
+
     data = transform_period(get_reminders())
     for i in range(len(data)):
         data[i]["plants"] = [f"{j + 1}) {x}" for j, x in enumerate(data[i]["plants"])]
@@ -711,7 +711,6 @@ def export():
     for i in range(len(history)):
         history[i] = list(history[i])
         history[i][1] = plants[i]
-    print(history)
     return render_template("export.html", user=session.get("email", 0), user_plants=enumerate(user_plants),
                            history=history)
 
@@ -739,7 +738,6 @@ def download_xlsx():
     else:
         filename = f"История.xlsx"
         worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес, кг', 'Комментарий'])
-    print(filename)
     # Запишите данные из JSON в книгу Excel
 
     for row in data[:-1]:
@@ -756,7 +754,6 @@ def download_xlsx():
     response = Response(excel_file.getvalue(),
                         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
     response.headers["Content-Disposition"] = f"attachment; filename={quoted_filename}"
-    print(response)
     return response
 
 
@@ -832,21 +829,6 @@ def continue_act(plants, d):
     return plants, plants_to_plant
 
 
-def add_padding(lst, k):
-    new_lst = []
-    for i in lst:
-        if type(i) == int:
-            new_lst.append([i] + [0] * k)
-        else:
-            new_lst.append(i + [0] * k)
-    return new_lst
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-
 def save_reminder(d):
     info = d
     plants = []
@@ -859,7 +841,6 @@ def save_reminder(d):
                 accounts.append(acc)
     # print(accounts, d)
     period = info["period"] + "_" + info["period_type"]
-    print(plants)
     with open('static/tg_data.json', 'r+', encoding='utf-8') as file:
         file_data = json.load(file)
         if len(file_data["data"]) == 0:
@@ -883,35 +864,6 @@ def save_plants(r):
     plants_to_save = plants_id - set(user_plants)
     Plants_().save_plants_to_user(plants_to_save)
     return
-
-
-def sort_by_m_type(history, m_type):
-    history = history
-    d_r1 = {
-        'watering': 'Полив',
-        'harvesting': 'Сбор урожая',
-        'planting_seeds': 'Посев семян',
-        'planting_sprouts': 'Посадка ростков',
-        'tending_weeding': 'Прополка',
-        'tending_fertilizing': 'Внесение удобрений',
-        'tending_pest_control': 'Борьба с вредителями',
-        'tending_transplant': 'Пересадка',
-        'tending_pruning': 'Подрезка'
-    }
-    d_r2 = {1: "watering",
-            2: "planting",
-            3: "tending",
-            4: "harvesting"}
-    ids = [x[1] for x in history]
-    plants_name = Plants_().get_plants_idname(id=ids)
-    d = dict([[x[0], x[1]] for x in plants_name])
-    new_his = []
-    for i in range(len(history)):
-        if d_r2[m_type] in history[i][2]:
-            new_his.append(list(history[i]) + [d[history[i][1]]])
-
-            new_his[-1][2] = d_r1[history[i][2]]
-    return new_his
 
 
 def transform_period(data):
