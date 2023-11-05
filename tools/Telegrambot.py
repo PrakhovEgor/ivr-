@@ -19,6 +19,7 @@ while True:
         new_data = []
 
         for item in data:
+            print(item)
             if datetime.datetime.strptime(item["start_date"], "%Y-%m-%dT%H:%M") <= datetime.datetime.now():
                 for acc in item["tg_id"]:
                     text = f"Новое уведомление!\nНазвание: {item['name']}\n"
@@ -28,8 +29,8 @@ while True:
                         text += "Растения: " + ", ".join(item["plants"]) + "\n"
                     if item["comment"]:
                         text += "Ваш комментарий: " + item["comment"] + "\n"
-
                     bot.send_message(acc, text)
+
                 new_item = item
 
                 counts, typed = new_item['period'].split("_")

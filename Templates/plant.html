@@ -2,45 +2,53 @@
 
 {% block content %}
 <div class="container">
-<form action="" method="post">
-<div class="row g-3 align-items-center">
+    <form action="" method="post">
+        <div class="row g-3 align-items-center">
 
-    <div class="col-auto">
-        <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="200"
-             width="auto">
-    </div>
-    <div class="col-auto">
-        <h1 class="display-5">{{ name }}</h1>
-    </div>
-    <div class="col-auto">
-        <input type="submit" class="btn btn-primary" name="edit" value="Редактировать">
-    </div>
-     <div class="col-auto">
-        <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
-    </div>
-    <div class="col-auto">
-        <input type="submit" class="btn btn-danger" name="reset" value="Сбросить">
-    </div>
+            <div class="col-auto">
+                <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="300"
+                     width="auto">
+            </div>
+            {% if "description" in description.keys() %}
+            <div class="col-md-6">
+                <h1 class="display-6">{{ description["description"].split("—")[0]}}</h1>
+                <p>—{{ "".join(description["description"].split("—")[1:])}}</p>
+            </div>
+            {% else %}
+            <div class="col-md-6">
+                <h1 class="display-6">{{name}}</h1>
 
-    <div class="col-auto">
-        <input type="submit" class="btn btn-primary" name="history" value="История">
-    </div>
+            </div>
+            {% endif %}
 
 
+        </div>
+        <div class="col-auto">
+            <table class="table table-striped-columns">
+                <tbody>
+                {% for k, v in description.items() %}
+                {% if k != "description" and k != "link"%}
+                {% if v%}
+                <tr>
+                    <td>{{ k }}</td>
+                    <td>{{ v }}</td>
+                </tr>
+                {% endif %}
+                {% endif %}
+                {% endfor %}
+
+
+                </tbody>
+            </table>
+            {% if "description" in description.keys() %}
+            <p>Больше информации Вы найдёте <a href="https://ru.wikipedia.org/wiki/{{name}}">тут</a></p>
+            {% endif %}
+            <input type="submit" class="btn btn-primary" name="history" value="История">
+            <input type="submit" class="btn btn-primary" name="edit" value="Редактировать">
+            <input type="submit" class="btn btn-danger" name="reset" value="Сбросить">
+            <input type="submit" class="btn btn-danger" name="delete" value="Удалить">
+        </div>
+    </form>
 </div>
-<div class="col-auto">
-        <table class="table table-striped-columns">
-            <tbody>
-            {% for k, v in description.items() %}
-            <tr>
-                <td>{{ k }}</td>
-                <td>{{ v }}</td>
-            </tr>
-            {% endfor %}
 
-            </tbody>
-        </table>
-    </div>
-</form>
-</div>
 {% endblock %}

@@ -1,5 +1,6 @@
 import datetime
 import pickle
+import re
 
 from flask import Flask, render_template, request, redirect, session, flash
 from forms.auth_form import LoginForm, RegisterForm, ForgotPassForm, ResetPassForm, action_form
@@ -30,17 +31,39 @@ with open('tools/res2.pkl', 'rb') as file:
 
 @app.route('/', methods=["POST", "GET"])
 def main():
-    for i in res:
-        name = i["name"].replace("?", "")
-        i.pop("name")
-        i.pop("img_src")
-        des = i
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT* FROM plants")
+    res = [list(x) for x in cursor.fetchall()]
+    mysql.connection.commit()
+    cursor.close()
 
-
+    print(res[0])
+    for i in range(len(res)):
+        row = res[i]
+        row[1] = re.sub(r'\[.*?\]', '', row[1])
+        row[2] = json.loads(row[2])
+        row[2]["description"] = re.sub(r'\[.*?\]', '', row[2]["description"])
+        row[2] = json.dumps(row[2], ensure_ascii=False)
+        res[i] = row
+    print(res[0])
+    for row in res:
         cursor = mysql.connection.cursor()
-        cursor.execute(' INSERT INTO plants(plant_name, description) VALUES(%s,%s)', (name, json.dumps(des, ensure_ascii=False).encode('utf8')))
+        print(type(json.dumps(row[2], ensure_ascii=False)))
+        cursor.execute("UPDATE plants SET plant_name = %s, description = %s WHERE id = %s", (row[1], row[2], row[0]))
         mysql.connection.commit()
         cursor.close()
+
+    # for i in res:
+    #     name = i["name"].replace("?", "")
+    #     i.pop("name")
+    #     i.pop("img_src")
+    #     des = i
+    #
+    #
+    #     cursor = mysql.connection.cursor()
+    #     cursor.execute(' INSERT INTO plants(plant_name, description) VALUES(%s,%s)', (name, json.dumps(des, ensure_ascii=False).encode('utf8')))
+    #     mysql.connection.commit()
+    #     cursor.close()
     return ")"
 
 

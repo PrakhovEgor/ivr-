@@ -1,152 +1,199 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+    .test {
+        padding: 0;
+        border: none;
+        background: none;
+    }
+    .badge-purple {
+    background-color: purple;
+    color: white; /* You can change the text color to match your design */
+  }
+</style>
 <div class="container">
-    <form action="" method="post">
-        <h1 class="display-6">Добавление:</h1>
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <input type="text" class="form-control" name="plant_input" value="{{plant_input_placeholder}}"
-                       id="search_field" oninput="checkInput()">
-            </div>
-            <div class="col-auto">
-                <input type="submit" class="btn btn-success" name="search" value="Искать" id="search"
-                       oninput="checkInput()">
-            </div>
-            <div class="col-auto">
-                <input type="submit" class="btn btn-primary" name="create_plant" value="Не нашли нужное растение?">
-            </div>
-        </div>
-        <br>
+    <form action="" method="post" class="text-center">
+        <div class="container mx-auto">
+            <h1 class="display-2">Добавление</h1>
+            <div class="col" id="to_add"></div>
+            <div class="col"><input type="button" class="btn btn-success btn-sm" name="save" value="Сохранить" id="save" hidden></div>
 
-        <div style="height:500px;width:100%;overflow-y:scroll;">
-            <div class="row" id="plants_list">
-
-            </div>
+            <label for="search_field" class="form-label">Начните вводить название:</label>
+            <input type="text" class="form-control" name="plant_input" value="{{plant_input_placeholder}}"
+                   id="search_field" oninput="checkInput()"><br>
         </div>
-        <input type="submit"
-               class="btn btn-success m-2"
-               name="save" value="Сохранить">
+        <a href="/create_plant">Не нашли нужное растение?</a>
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3" id="container"></div>
+
     </form>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
-        const container = document.getElementById('plants_list');
-
-        let plants = {{plants | tojson}};
-        let user_plants = {{user_plants}};
-        console.log(plants);
-        for (const plant of plants) {
-            const col = document.createElement('div');
-            col.className = 'col d-flex align-items-stretch justify-content-center my-2';
-
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.width = '18rem';
-
-            const img = document.createElement('img');
-            img.src = `static/${plant[1]}.jpg`;
-            img.className = 'card-img-top';
-            img.alt = 'Растение';
-
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body text-center';
-
-            const title = document.createElement('h5');
-            title.className = 'card-title';
-            title.textContent = plant[1];
-
-            cardBody.appendChild(title);
-
-            if (user_plants.includes(plant[0])) {
-                const addedBtn = document.createElement('a');
-                addedBtn.className = 'btn btn-primary disabled';
-                addedBtn.textContent = 'Добавлено';
-                cardBody.appendChild(addedBtn);
-            } else {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'btn-check';
-                checkbox.id = plant[0];
-                checkbox.name = plant[0];
-                checkbox.autocomplete = 'off';
-
-                const label = document.createElement('label');
-                label.className = 'btn btn-outline-primary';
-                label.htmlFor = plant[0];
-                label.textContent = 'Добавить';
-
-                cardBody.appendChild(checkbox);
-                cardBody.appendChild(label);
-            }
-
-            card.appendChild(img);
-            card.appendChild(cardBody);
-            col.appendChild(card);
-            container.appendChild(col);
-        }
-
-    });
-    function checkInput() {
-        let plants = {{plants | tojson}};
-        var container = document.getElementById("plants_list");
+    function checkInput(){
+        const search = document.getElementById("search_field").value;
+        const container = document.getElementById("container");
         container.innerHTML = '';
-        var user_plants = {{user_plants}};
+        if (search.length > 1){
+            const plants = {{plants|tojson}};
+            const user_plants = {{user_plants|tojson}};
+            for (let i = 0; i < plants.length; i++) {
+                var plant = plants[i];
+                if (plant[1].toLowerCase().includes(search.toLowerCase())) {
+                    var col = document.createElement("div");
+                    col.classList.add("col");
+                    var card = document.createElement("div");
+                    card.className = "card shadow-sm";
+                    card.style.width = "18rem";
+                    var img = document.createElement('img');
+                    img.src = `static/${plant[1]}.jpg`;
+                    img.className = 'card-img-top';
+                    img.alt = 'Растение';
+                    img.width="100%";
+                    img.height="200";
+                    img.style.position = "relative";
+                    img.style.objectFit = "cover";
+
+                    const cardBody = document.createElement('div');
+                    cardBody.className = 'card-body text-center';
+
+                    const title = document.createElement('h5');
+                    title.className = 'card-title';
+                    title.textContent = plant[1];
+
+                    cardBody.appendChild(title);
+                    if (user_plants.includes(plant[0])) {
+                        const addedBtn = document.createElement('a');
+                        addedBtn.className = 'btn btn-primary disabled';
+                        addedBtn.textContent = 'Добавлено';
+                        cardBody.appendChild(addedBtn);
+                    } else {
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.className = 'btn-check';
+                        checkbox.id = plant[0];
+                        checkbox.name = plant[1];
+                        checkbox.autocomplete = 'off';
+                        checkbox.onclick = check_click;
 
 
-        var promt = document.getElementById("search_field");
+                        const label = document.createElement('label');
+                        label.className = 'btn btn-outline-primary';
+                        label.htmlFor = plant[0];
+                        label.textContent = 'Добавить';
 
-        for (let i = 0; i < plants.length; i++) {
-            var plant = plants[i];
-            if (plant[1].toLowerCase().includes(promt.value.toLowerCase())) {
-                const col = document.createElement('div');
-            col.className = 'col d-flex align-items-stretch justify-content-center my-2';
 
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.style.width = '18rem';
+                        cardBody.appendChild(checkbox);
+                        cardBody.appendChild(label);
 
-            const img = document.createElement('img');
-            img.src = `static/${plant[1]}.jpg`;
-            img.className = 'card-img-top';
-            img.alt = 'Растение';
+                    }
+                    card.appendChild(img);
+                    card.appendChild(cardBody);
+                    col.appendChild(card);
+                    container.appendChild(col);
+                }
+            }
+            console.log("END")
+        }
+    }
 
-            const cardBody = document.createElement('div');
-            cardBody.className = 'card-body text-center';
+    function check_click(event) {
+        const btn = document.getElementById(event.target.id);
+        const to_add = document.getElementById("to_add");
+        if (btn.checked){
+            if (to_add.querySelectorAll("button").length == 0){
+                const p = document.createElement("p");
+                p.textContent = "Будут добавлены:";
+                to_add.appendChild(p);
+                var saveButton = document.getElementById("save");
+                saveButton.hidden = false;
 
-            const title = document.createElement('h5');
-            title.className = 'card-title';
-            title.textContent = plant[1];
-            cardBody.appendChild(title);
-            if (user_plants.includes(plant[0])) {
-                const addedBtn = document.createElement('a');
-                addedBtn.className = 'btn btn-primary disabled';
-                addedBtn.textContent = 'Добавлено';
-                cardBody.appendChild(addedBtn);
-            } else {
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.className = 'btn-check';
-                checkbox.id = plant[0];
-                checkbox.name = plant[0];
-                checkbox.autocomplete = 'off';
-
-                const label = document.createElement('label');
-                label.className = 'btn btn-outline-primary';
-                label.htmlFor = plant[0];
-                label.textContent = 'Добавить';
-
-                cardBody.appendChild(checkbox);
-                cardBody.appendChild(label);
             }
 
-            card.appendChild(img);
-            card.appendChild(cardBody);
-            col.appendChild(card);
-            container.appendChild(col);
+            const plant_btn = document.createElement("button");
+            plant_btn.type = "button";
+            plant_btn.style.padding = '0';
+            plant_btn.style.border = 'none';
+            plant_btn.style.background = 'none';
+            plant_btn.value = btn.name;
+            plant_btn.id = "to_del_button_" + btn.id.toString();
+            plant_btn.onclick = remove;
+            plant_btn.name = btn.id;
+            const span = document.createElement("span");
+            span.className = "badge badge-purple m-1";
+            span.id = "to_del_span_" + btn.id.toString();
+            span.textContent = btn.name;
+            span.style.fontSize = '15px';
+            plant_btn.appendChild(span);
+            to_add.appendChild(plant_btn);
+        } else{
+            const plant_btn = document.getElementById("to_del_button_" + btn.id.toString());
+            plant_btn.remove();
+            if (to_add.querySelectorAll("button").length == 0){
+                remove_div()
+
             }
         }
     }
+    function remove(event) {
+        const btn = document.getElementById(event.target.id);
+        const id = event.target.id;
+        const to_add = document.getElementById("to_add");
+        var id_split = id.split("_")
+        if (id.includes("span")){
+            const btn_to_del = document.getElementById(id.replace("span", "button"));
+            btn_to_del.remove()
+            const checkbox = document.getElementById(id_split[id_split.length - 1]);
+            checkbox.checked = false;
+            if (to_add.querySelectorAll("button").length == 0){
+                remove_div();
+            }
+
+        } else {
+            btn.remove()
+            const checkbox = document.getElementById(id_split[id_split.length - 1]);
+            checkbox.checked = false;
+            if (to_add.querySelectorAll("button").length == 0){
+                remove_div();
+            }
+        }
+    }
+
+    function remove_div() {
+        const to_add = document.getElementById("to_add");
+        var p = to_add.querySelector("p");
+        p.remove();
+        var saveButton = document.getElementById("save");
+        saveButton.hidden = true;
+    }
+
+    function save(){
+        const to_add = document.getElementById("to_add");
+        const buts = to_add.querySelectorAll('button')
+        var data = Array();
+        for (let i = 0; i < buts.length; i++) {
+            var btn = buts[i];
+            var id_split = btn.id.split("_");
+            var id = id_split[id_split.length - 1];
+
+            data.push(id);
+        }
+        $.ajax({
+                url: `/save_added_plants`,
+                method: 'POST',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                xhrFields: {
+                    responseType: 'blob'  // Set the response type to 'blob'
+                }
+            });
+        window.location.href = "/user_plants";
+
+
+    }
+    const saveButton = document.getElementById("save");
+    saveButton.addEventListener("click", save);
+
 </script>
+
 {% endblock %}

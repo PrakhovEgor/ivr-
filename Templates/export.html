@@ -8,78 +8,78 @@
     }
 </style>
 <form action="/export" method="POST">
-    <div class="container">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-6"> <!-- левый контейнер -->
-                    <h1 class="display-6">Ваши растения</h1>
-                    <div class="table-container">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">#</th>
-                                <th scope="col">Название</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {% for plant in user_plants %}
-                            <tr>
-                                <th scope="row">{{plant[0] + 1}}</th>
-                                <td>{{plant[1][1]}}</td>
-                            </tr>
-                            {% endfor %}
-                            </tbody>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6"> <!-- левый контейнер -->
+                <h1 class="display-6">Ваши растения</h1>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Название</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for plant in user_plants %}
+                        <tr>
+                            <th scope="row">{{plant[0] + 1}}</th>
+                            <td>{{plant[1][1]}}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
 
-                        </table>
-                    </div>
-                    <input type="submit" class="btn btn-primary" name="user_plants" value="Скачать"
-                           id="user_plants">
+                    </table>
                 </div>
-                <div class="col-md-6"> <!-- правый контейнер -->
-                    <h1 class="display-6">Ваши действия</h1>
-                    <label for="multi" class="form-label">Выберите типы действий:</label>
-                    <select class="form-select" multiple aria-label="Multiple select example" id="multi" oninput="multinput()">
-                        <option value="watering" selected>Полив</option>
-                        <option value="planting" selected>Посадка</option>
-                        <option value="tending" selected>Уход</option>
-                        <option value="harvesting" selected>Сбор урожая</option>
-                    </select>
-                    <label for="dates" class="form-label">Выберите даты:</label>
-                    <div class="container p-2" id="dates">
-                        <input type="date" id="time_from"
-                               name="timefrom" value="2023-01-01"
-                               min="2000-01-01" max="2030-12-31" class="form-control">
-                        <input type="date" id="time_to"
-                               name="timeto" value="2023-12-31"
-                               min="2000-01-01" max="2030-12-31" class="form-control">
-                        <input type="button" class="btn btn-success btn-sm" name="date_picker" value="Выбрать" onclick="multinput()" id="date_picker">
-                        <input type="button" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить" onclick="reset_date()">
-                    </div>
-
-                    <div class="table-container">
-                        <table class="table" id="table">
-                            <thead>
-                            <tr>
-                                <th scope="col">Дата</th>
-                                <th scope="col">Тип действия</th>
-                                <th scope="col">Растение</th>
-                                <th scope="col">Кол-во</th>
-                                <th scope="col">Вес, кг</th>
-                                <th scope="col">Комментарий</th>
-                            </tr>
-                            </thead>
-                            <tbody id="tbody">
-
-                            </tbody>
-                        </table>
-                    </div>
-                    <input type="button" class="btn btn-primary" name="user_hist" value="Скачать"
-                           id="user_hist">
+                <input type="submit" class="btn btn-primary" name="user_plants" value="Скачать"
+                       id="user_plants">
+                <br>
+            </div>
+            <div class="col-md-6"> <!-- правый контейнер -->
+                <h1 class="display-6">Ваши действия</h1>
+                <label for="multi" class="form-label">Выберите типы действий:</label>
+                <select class="form-select" multiple aria-label="Multiple select example" id="multi"
+                        oninput="multinput()">
+                    <option value="watering" selected>Полив</option>
+                    <option value="planting" selected>Посадка</option>
+                    <option value="tending" selected>Уход</option>
+                    <option value="harvesting" selected>Сбор урожая</option>
+                </select>
+                <label for="dates" class="form-label">Выберите даты:</label>
+                <div class="container p-2" id="dates">
+                    <input type="date" id="time_from"
+                           name="timefrom" value="2023-01-01"
+                           min="2000-01-01" max="2030-12-31" class="form-control">
+                    <input type="date" id="time_to"
+                           name="timeto" value="2023-12-31"
+                           min="2000-01-01" max="2030-12-31" class="form-control">
+                    <input type="button" class="btn btn-success btn-sm" name="date_picker" value="Выбрать"
+                           onclick="multinput()" id="date_picker">
+                    <input type="button" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить"
+                           onclick="reset_date()">
                 </div>
+
+                <div class="table-container">
+                    <table class="table" id="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">Дата</th>
+                            <th scope="col">Тип действия</th>
+                            <th scope="col">Растение</th>
+                            <th scope="col">Кол-во</th>
+                            <th scope="col">Вес, кг</th>
+                            <th scope="col">Комментарий</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tbody">
+
+                        </tbody>
+                    </table>
+                </div>
+                <input type="button" class="btn btn-primary" name="user_hist" value="Скачать"
+                       id="user_hist">
             </div>
         </div>
-
-
     </div>
 </form>
 <div style="display:none;" id="param">all | История</div>

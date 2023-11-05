@@ -2,28 +2,40 @@
 
 {% block content %}
 
-<h1 class="display-6">Профиль</h1>
+<div class="container">
+    <h1 class="display-6">Профиль</h1>
 
-<p> Доступные телеграмм аккаунты:</p>
-<form action="" method="POST">
-    {% if not accs %}
-    <div class="alert alert-primary" role="alert">
-        Для того, чтобы создавать напоминания, Вы должны зарегистрировать хотя бы один telegram аккаунт.<br>
-        Чтобы это сделать напишите боту: <a href="https://t.me/garden_journal_bot?start=100&text=/add">Telegram bot</a>
+    <p>Доступные телеграмм аккаунты:</p>
 
-    </div>
-    {% endif %}
-    {% for acc in accs %}
-    <div class="row g-3 align-items-center">
-        <div class="col-auto">
-            <p>ID: {{ acc[0] }}</p>
+    <form action="" method="POST">
+        {% if not accs %}
+        <div class="alert alert-primary" role="alert">
+            Для того, чтобы создавать напоминания, Вы должны зарегистрировать хотя бы один telegram аккаунт. <br>
+            Чтобы это сделать, напишите боту: <a href="https://t.me/garden_journal_bot?start=100&text=/add">Telegram bot</a>
         </div>
-        <div class="col-auto">
-            <input type="submit" class="btn btn-danger" name="delete_{{acc[1]}}" value="Удалить">
-        </div>
-    </div>
-    {% endfor %}
-    <input type="submit" class="btn btn-primary m-2" name="export" value="Экспорт данных">
-</form>
+        {% else %}
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th scope="col">ID</th>
+                    <th scope="col">Действие</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for acc in accs %}
+                <tr>
+                    <td>{{ acc[0] }}</td>
+                    <td>
+                        <button type="submit" class="btn btn-danger" name="delete_{{ acc[1] }}">Удалить</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% endif %}
+        <button type="submit" class="btn btn-primary m-2" name="export">Экспорт данных</button>
+    </form>
+</div>
 
 {% endblock %}

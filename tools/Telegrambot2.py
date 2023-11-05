@@ -26,8 +26,8 @@ def message_reply(message):
             if str(data[email]) != str(password):
                 bot.send_message(message.chat.id, "Неверный пароль")
             else:
-                if [email] in requests.get("http://127.0.0.1:5000/todo/api/v1.0/tg_emails").json()[
-                    'emails']:
+                if [message.chat.id] in requests.get("http://127.0.0.1:5000/todo/api/v1.0/tg_accs").json()[
+                    'tg_accs']:
                     bot.send_message(message.chat.id, "Ваш аккаунт уже зарегистрирован!")
                 else:
                     requests.post("http://127.0.0.1:5000/todo/api/v1.0/tg_registration",

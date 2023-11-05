@@ -1,5 +1,6 @@
 import datetime
 import json
+import os
 
 
 class Plants:
@@ -48,15 +49,24 @@ class Plants:
         res = cur.fetchall()
         cur.close()
 
+        print(res)
         if search:
             new_plants = [plant for plant in res if search.strip().lower() in plant[1].strip().lower()]
             res = new_plants.copy()
-            # return [[plant[0], plant[1], plant[2]] for plant in new_plants]
         if img:
             new_res = []
             for i in res:
                 i = list(i)
-                img_path = i[1] + '.jpg' if i[3] is None or i[3] == 0 else f'{self.email}/{i[1]}.jpg'
+                img_path = ""
+                if i[1] + ".jpg" in os.listdir('static/' + self.email):
+                    print(1, i)
+                    img_path = f'{self.email}/{i[1]}.jpg'
+                elif i[3] is None or i[3] == 0:
+                    img_path = i[1] + '.jpg'
+                else:
+                    img_path = f'{self.email}/{i[1]}.jpg'
+                if not os.path.exists("static/"+img_path):
+                    img_path = "image_placeholder.jpg"
                 new_res.append(i + [img_path])
             res = new_res.copy()
         if include_date:

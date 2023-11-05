@@ -21,21 +21,14 @@
         <div class="col-auto">
             <table class="table table-striped-columns">
                 <tbody>
-                {% for k, v in description.items() %}
-                <tr>
-                    <td>{{ k }}</td>
-                    <td><textarea type="text" class="form-control" name="{{k}}">{{v}}</textarea></td>
 
-                </tr>
-                {% endfor %}
 
-                {% if "Доп. информация" not in description.keys() %}
                 <tr>
                     <td>Доп. информация</td>
-                    <td><textarea type="text" class="form-control" name="extra_infromation">{{v}}</textarea></td>
+                    <td><textarea type="text" class="form-control" name="extra_infromation">{{description.get("Доп. информация", "")}}</textarea></td>
 
                 </tr>
-                {% endif %}
+
 
                 </tbody>
             </table>

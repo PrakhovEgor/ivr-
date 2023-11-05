@@ -2,7 +2,6 @@ import datetime
 import json
 import os
 from PIL import Image
-import pandas as pd
 from urllib.parse import quote
 from openpyxl import Workbook
 from io import BytesIO
@@ -10,15 +9,11 @@ from flask import Flask, render_template, request, redirect, session, jsonify, u
 from forms.auth_form import LoginForm, RegisterForm, ForgotPassForm, ResetPassForm
 from flask_mysqldb import MySQL
 from flask_mail import Mail
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-import smtplib
+from flask_caching import Cache
 import random
 import string
 import locale
 from dateutil.parser import parse
-import logging.config
-from werkzeug.utils import secure_filename
 from collections import defaultdict
 from User_class import User
 from Plants_class import Plants
@@ -383,7 +378,6 @@ def user_plants():
             else:
                 session["date_dir"] = "down"
                 user_plants.sort(key=lambda x: x[-1], reverse=True)
-
     return render_template("user_plants.html", active_up="text-white", main="Журнал", user=session.get('email'),
                            user_plants=user_plants, alph_dir=session.get("alph_dir", "down"),
                            date_dir=session.get("date_dir", "down"))
@@ -434,17 +428,6 @@ def make_reminder():
                            cur_date=datetime.date.today(), cur_time=datetime.datetime.now().strftime("%H:%M"),
                            timedelta=datetime.timedelta(days=1), accounts=accounts, user=session.get('email'),
                            name_error=name_error, accs_error=accs_error)
-
-
-# @app.route('/telegram', methods=['GET', 'POST'])
-# def telegram():
-#     accounts = User_().get_user_tg()
-#
-#     if request.method == "POST":
-#         if "add" in request.form:
-#             return redirect("/telegram_add")
-#     return render_template("telegram.html", main="Журнал", user=session.get('email'),
-#                            accounts=accounts)
 
 
 @app.route('/constructor', methods=['GET', 'POST'])
@@ -505,21 +488,6 @@ def add_plants():
     user_plants = Plants_().get_user_plants_id()
     plants = Plants_().get_plants_idname()
     plant_input_placeholder = ""
-    if request.method == "POST":
-        if "search" in request.form:
-            search = request.form["plant_input"]
-            plant_input_placeholder = search
-            plants = Plants_().get_plants_idname(search)
-        elif "save" in request.form:
-            ids = []
-            for k, v in request.form.items():
-                if v == "on":
-                    ids.append(int(k))
-            Plants_().save_plants_to_user(ids)
-            return redirect("/user_plants")
-        elif "create_plant" in request.form:
-            return redirect("/create_plant")
-
     return render_template("add_plants.html", active_up="text-white", main="Журнал", user=session.get('email'),
                            user_plants=user_plants, plants=plants, plant_input_placeholder=plant_input_placeholder)
 
@@ -583,13 +551,10 @@ def edit_plant(plant_id):
     if request.method == "POST":
         if "save" in request.form:
             file = request.files['image']
-            d = dict()
-            for k, v in request.form.items():
-                if k == 'image' or k == 'save':
-                    continue
-                if v:
-                    d[k] = v
-            User_().save_custom_adds(plant_id, d)
+            if "extra_infromation" in request.form:
+                description["extra_infromation"] = request.form["extra_infromation"]
+
+            User_().save_custom_adds(plant_id, description)
             if file.filename != '':
                 file.save(os.path.join(f"static/{session.get('email')}", name + '.jpg'))
             return redirect(f"/plant/{plant_id}")
@@ -671,10 +636,8 @@ def create_plant():
             name = request.form["name"]
             file = request.files['image']
             d = dict()
-            extra_eng = ['location', 'reproduction', 'group', 'winterness', 'application', 'cultivation', 'soil',
-                         'extra_information']
-            extra_rus = ['Местоположение', 'Размножение', 'Группа', 'Зимостойкость', 'Применение', 'Выращивание',
-                         'Требования к почве', 'Доп. информация']
+            extra_eng = ['extra_information']
+            extra_rus = ['Доп. информация']
 
             for i in range(len(extra_eng)):
                 if request.form[extra_eng[i]] != '':
@@ -705,6 +668,7 @@ def profile():
         for i in request.form:
             if i.startswith("delete"):
                 User_().delete_tg(user_id=i.split('_')[1])
+                return redirect("/profile")
 
     return render_template("profile.html", user=session.get("email", 0), active_profile='text-white', accs=accs)
 
@@ -796,6 +760,13 @@ def download_xlsx():
     return response
 
 
+@app.route('/save_added_plants', methods=['POST'])
+def save_added_plants():
+    ids = [int(x) for x in request.json]
+    Plants_().save_plants_to_user(ids)
+    return 200
+
+
 def get_emails():  # Возвращает список emailов
     cur = mysql.connection.cursor()
     cur.execute("SELECT email FROM auth_data")
@@ -880,14 +851,15 @@ def save_reminder(d):
     info = d
     plants = []
     accounts = []
-    for k, v in info.items():
+    for k, v in info.lists():
         if k.isdigit():
             plants.append(k)
         elif k == "accounts":
-            accounts.append(v)
-
+            for acc in v:
+                accounts.append(acc)
+    # print(accounts, d)
     period = info["period"] + "_" + info["period_type"]
-
+    print(plants)
     with open('static/tg_data.json', 'r+', encoding='utf-8') as file:
         file_data = json.load(file)
         if len(file_data["data"]) == 0:
@@ -1004,13 +976,13 @@ def get_emails_api():
     return jsonify({'data': [dict(res)]})
 
 
-@app.route('/todo/api/v1.0/tg_emails', methods=['GET'])
+@app.route('/todo/api/v1.0/tg_accs', methods=['GET'])
 def get_tg_emails():
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT email FROM telegram_data")
+    cursor.execute("SELECT telegram_id FROM telegram_data")
     res = cursor.fetchall()
     cursor.close()
-    return jsonify({'emails': res})
+    return jsonify({'tg_accs': res})
 
 
 @app.route('/todo/api/v1.0/tg_registration', methods=['POST'])

@@ -4,6 +4,8 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from PIL import Image
+import imagehash
 
 from flask import session
 from dateutil.parser import parse
@@ -149,8 +151,12 @@ class User:
             self.mysql.connection.commit()
             cur.close()
 
+
         if os.path.isdir('static/' + session.get('email')) and name + '.jpg' in os.listdir(f"static/{session.get('email')}"):
-            os.remove(os.path.join(f"static/{session.get('email')}", name + '.jpg'))
+            hash0 = imagehash.average_hash(Image.open(f"static/{session.get('email')}/{name + '.jpg'}"))
+            image_placeholder = imagehash.average_hash(Image.open("static/image_placeholder.jpg"))
+            if not image_placeholder - hash0 < 5:
+                os.remove(os.path.join(f"static/{session.get('email')}", name + '.jpg'))
 
 
         cur = self.mysql.connection.cursor()

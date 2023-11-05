@@ -7,27 +7,52 @@
         height: 400px; /* Adjust the height as needed */
         overflow-y: auto;
     }
+    .container-fluid {
+        text-align: center; /* Center align the content within the container */
+    }
+
+    .col-auto {
+        display: inline-block; /* Make sure column elements stay in line */
+        text-align: left; /* Set text alignment to left for column elements */
+    }
+
+    .form-label {
+        text-align: right; /* Right-align the label */
+    }
+
+    .form-select {
+        display: inline-block; /* Make sure the select element stays in line */
+    }
+
+    .table-container {
+        margin: 0 auto; /* Center the table */
+        text-align: center; /* Center align the content within the table container */
+    }
+
+    #user_hist {
+        display: block;
+        margin: 0 auto; /* Center the button */
+    }
 </style>
 <form action="" method="POST">
 
-    <div class="d-flex flex-column align-items-center">
-        <div class="col-auto">
+    <div class="container-fluid">
+        <div class="row">
             <h1 class="display-4">{{ day.strftime("%B %d, %a") }}</h1>
         </div>
-        <div class="row g-3 align-items-center">
-            <div class="col-auto">
-                <label for="multi" class="form-label">Выберите типы действий:</label>
-            </div>
-            <div class="col-auto">
-                <select class="form-select" multiple aria-label="Multiple select example" id="multi"
-                        oninput="multinput()">
-                    <option value="watering">Полив</option>
-                    <option value="planting">Посадка</option>
-                    <option value="tending">Уход</option>
-                    <option value="harvesting">Сбор урожая</option>
-                </select>
-            </div>
-        </div>
+
+<div class="col-md-4 mx-auto">
+        <label for="multi" class="form-label">Выберите типы действий:</label>
+        <select class="form-select" multiple aria-label="Multiple select example" id="multi"
+                oninput="multinput()">
+            <option value="watering">Полив</option>
+            <option value="planting">Посадка</option>
+            <option value="tending">Уход</option>
+            <option value="harvesting">Сбор урожая</option>
+        </select>
+</div>
+
+
         <div class="table-container">
             <table class="table" id="table">
                 <thead>
@@ -48,6 +73,7 @@
         <input type="button" class="btn btn-primary" name="user_hist" value="Скачать"
                id="user_hist">
     </div>
+
 </form>
 <div style="display:none;" id="param">date | {{ day }}</div>
 <script>
