@@ -1,3 +1,18 @@
 {
-  "data": []
+  "data": [
+    {
+      "id": 2,
+      "email": "egor.prakhov@mail.ru",
+      "name": "\u0418\u0438\u0441\u0443\u0441",
+      "m_type": "-",
+      "tg_id": [
+        "853071617"
+      ],
+      "plants": [],
+      "start_date": "2023-11-06T22:00",
+      "period": "1_day",
+      "comment": "",
+      "plants_ids": []
+    }
+  ]
 }
