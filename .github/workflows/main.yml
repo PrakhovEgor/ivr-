@@ -13,14 +13,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: 3.9  
+        python-version: 3.9 
 
-    - name: Install dependencies
+    - name: Set compatible locale
       run: |
+        export LC_ALL=C 
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install openpyxl
-        pip install flask_caching
 
     - name: Run tests
       run: |
