@@ -18,7 +18,11 @@ from collections import defaultdict
 from User_class import User
 from Plants_class import Plants
 
-locale.setlocale(locale.LC_TIME, 'ru_RU')
+try:
+    locale.setlocale(locale.LC_TIME, 'ru_RU')
+except:
+    pass
+
 
 # log_config = {
 #     'version': 1,
