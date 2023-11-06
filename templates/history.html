@@ -1,3 +1,4 @@
+<!--Страница с историей по растению-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -65,9 +66,9 @@
                id="user_hist">
     </form>
 </div>
-<div style="display:none;" id="param">plant | {{ name }}</div>
+<div style="display:none;" id="param">plant | {{ name }}</div><!-- переменная -->
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => {  // Отрисовка правой таблицы
         let history = {{history | tojson}};
         const tbody = document.getElementById("tbody");
 
@@ -105,10 +106,7 @@
                 plant.textContent = hist[1];
                 tr.appendChild(plant)
             }
-
             var addition = JSON.parse(hist[3]);
-
-
             if (Object.keys(addition).includes("count")) {
                 const count = document.createElement("td");
                 count.textContent = addition["count"];
@@ -153,7 +151,7 @@
             }
             tbody.appendChild(tr);
         }
-        document.getElementById("user_hist").addEventListener("click", function () {
+        document.getElementById("user_hist").addEventListener("click", function () {  // Сохранение таблицы в .xlsx
             var data = [];
             $('#table tbody tr').each(function () {
                 var row = [];
@@ -172,13 +170,11 @@
                 data: JSON.stringify(data),
                 contentType: 'application/json',
                 xhrFields: {
-                    responseType: 'blob'  // Set the response type to 'blob'
+                    responseType: 'blob'
                 },
                 success: function (response) {
-                    // Create a Blob from the response data
                     var blob = new Blob([response], {type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 
-                    // Create a URL for the Blob and trigger the download
                     console.log(data);
                     var url = URL.createObjectURL(blob);
                     var a = document.createElement('a');
@@ -192,22 +188,21 @@
             });
         });
     });
+
     function formatDate(date) {
+        var dd = date.getDate();
+        if (dd < 10) dd = '0' + dd;
 
-            var dd = date.getDate();
-            if (dd < 10) dd = '0' + dd;
+        var mm = date.getMonth() + 1;
+        if (mm < 10) mm = '0' + mm;
 
-            var mm = date.getMonth() + 1;
-            if (mm < 10) mm = '0' + mm;
+        var yy = date.getFullYear() % 100;
+        if (yy < 10) yy = '0' + yy;
 
-            var yy = date.getFullYear() % 100;
-            if (yy < 10) yy = '0' + yy;
+        return dd + '.' + mm + '.' + yy;
+    }
 
-            return dd + '.' + mm + '.' + yy;
-        }
-
-    function multinput() {
-
+    function multinput() {  // Отрисовка правой таблицы с фильтрацией по типу действия
         const selectEl = document.getElementById("multi");
         const selectedOptions = Array.from(selectEl.selectedOptions).map(option => option.value);
         const start_date = new Date(document.getElementById("time_from").value);
@@ -234,7 +229,7 @@
         for (let i = 0; i < history.length; i++) {
             var hist = history[i];
             const temp_date = new Date(hist[4])
-            if (!selectedOptions.includes(hist[2].split('_')[0]) || ((temp_date < start_date) || (temp_date > last_date))){
+            if (!selectedOptions.includes(hist[2].split('_')[0]) || ((temp_date < start_date) || (temp_date > last_date))) {
                 continue;
             }
             const tr = document.createElement("tr");
@@ -305,7 +300,8 @@
             tbody.appendChild(tr);
         }
     }
-    function reset_date(){
+
+    function reset_date() {// Сброс дат
         var start_date = document.getElementById("time_from");
         var last_date = document.getElementById("time_to");
         start_date.value = "2023-01-01";
@@ -315,5 +311,4 @@
 
     }
 </script>
-
 {% endblock %}

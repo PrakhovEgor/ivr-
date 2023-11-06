@@ -9,7 +9,7 @@ class Plants:
         self.email = email
         self.mysql = mysql
 
-    def get_user_plants_id(self):
+    def get_user_plants_id(self):  # Возвращает id растений юзера
         cur = self.mysql.connection.cursor()
         cur.execute(f"SELECT plant_id FROM user_data WHERE user_id = {self.id} AND m_type='own'")
         res = cur.fetchall()
@@ -17,9 +17,20 @@ class Plants:
         return [x[0] for x in res]
 
     def get_plants_idname(self, search='', id=None, img=False, include_users=False, include_date=False):
+        """
+        :param search: фильтр на название
+        :param id: id растений(ия)
+        :param img: Добавить ли ссылку на фото?
+        :param include_users: Добавить ли пользовательские растения?
+        :param include_date: Добавить дату?
+        :return: Список с id, name, desctiprion, img?, date? для каждого растения
+        """
         where_clause = ''
         if include_users:
-            id = id or self.get_user_plants_id()
+            if id == None:
+                id = self.get_user_plants_id()
+            else:
+                id = set(id) | set(self.get_user_plants_id())
         else:
             where_clause = "WHERE custom IS NULL"
         if id is None:
@@ -49,7 +60,6 @@ class Plants:
         res = cur.fetchall()
         cur.close()
 
-        print(res)
         if search:
             new_plants = [plant for plant in res if search.strip().lower() in plant[1].strip().lower()]
             res = new_plants.copy()
@@ -59,13 +69,12 @@ class Plants:
                 i = list(i)
                 img_path = ""
                 if i[1] + ".jpg" in os.listdir('static/' + self.email):
-                    print(1, i)
                     img_path = f'{self.email}/{i[1]}.jpg'
                 elif i[3] is None or i[3] == 0:
                     img_path = i[1] + '.jpg'
                 else:
                     img_path = f'{self.email}/{i[1]}.jpg'
-                if not os.path.exists("static/"+img_path):
+                if not os.path.exists("static/" + img_path):
                     img_path = "image_placeholder.jpg"
                 new_res.append(i + [img_path])
             res = new_res.copy()
@@ -83,7 +92,7 @@ class Plants:
                 res[i].append(d[res[i][0]])
         return res
 
-    def save_plants_to_user(self, plants_ids):
+    def save_plants_to_user(self, plants_ids):  # Сохраняет растение юзеру
         cursor = self.mysql.connection.cursor()
         for id in plants_ids:
             cursor.execute(f" INSERT INTO user_data(user_id, plant_id, m_type, date) VALUES(%s, %s, %s, %s)",
@@ -92,14 +101,14 @@ class Plants:
         cursor.close()
         return
 
-    def get_id_by_plantname(self, name):
+    def get_id_by_plantname(self, name):  # Возвращает id растения по его названию
         cur = self.mysql.connection.cursor()
         cur.execute("SELECT id FROM plants WHERE plant_name = %s", [name])
         res = cur.fetchall()
         cur.close()
         return res[0]
 
-    def save_custom_plant(self, name, d):
+    def save_custom_plant(self, name, d):  # Сохраняет кастомное растение юзера
         cursor = self.mysql.connection.cursor()
         cursor.execute("INSERT INTO plants(plant_name, description, custom) VALUES(%s, %s, %s)",
                        (name, json.dumps(d, ensure_ascii=False).encode('utf8'), True))
@@ -114,6 +123,10 @@ class Plants:
         return
 
     def get_all_plants_names(self, include_users=True):
+        """
+        :param include_users: брать ли растения пользователя?
+        :return: Список всех названий растений
+        """
         cur = self.mysql.connection.cursor()
         cur.execute(f"SELECT plant_name, custom FROM plants")
         res = cur.fetchall()
@@ -121,16 +134,12 @@ class Plants:
         res = [x[0] for x in res if x[1] in [None, 0, int(include_users)]]
         return res
 
-    def get_user_plants_adds(self):
-        cur = self.mysql.connection.cursor()
-        cur.execute(
-            f"SELECT plant_id, addition FROM user_data WHERE user_id = {self.id} AND m_type='addition'")
-        res = cur.fetchall()
-        cur.close()
-
-        return dict(res)
-
     def get_plant_history(self, plant_id, m_type='all'):
+        """
+        :param plant_id: id растения
+        :param m_type: тип действия
+        :return: список действия по растению и действию
+        """
         plant_id = plant_id
         if m_type == "all":
             avail = ['watering', 'harvesting', 'planting_seeds', 'planting_sprouts',
@@ -146,34 +155,10 @@ class Plants:
         elif m_type == "harvesting":
             avail = ['harvesting', 'harvesting']
 
-        d = {
-            'watering': 'Полив',
-            'harvesting': 'Сбор урожая',
-            'planting_seeds': 'Посев семян',
-            'planting_sprouts': 'Посадка ростков',
-            'tending_weeding': 'Прополка',
-            'tending_fertilizing': 'Внесение удобрений',
-            'tending_pest_control': 'Борьба с вредителями',
-            'tending_transplant': 'Пересадка',
-            'tending_pruning': 'Подрезка'
-        }
-
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"SELECT * FROM user_data WHERE user_id = {self.id} AND plant_id={plant_id} AND m_type IN {tuple(avail)}")
         res = cur.fetchall()
         cur.close()
         res = [list(x) for x in res]
-
-        # for i in range(len(res)):
-        #     res[i][-3] = json.loads(res[i][-3])
-        #     res[i][2] = d.get(res[i][2])
-        return res
-
-    def get_user_tg(self, id=False):
-        email = self.email
-        cur = self.mysql.connection.cursor()
-        cur.execute(f"SELECT name{', telegram_id' * int(id)} FROM telegram_data WHERE email = %s", [email])
-        res = cur.fetchall()
-        cur.close()
         return res

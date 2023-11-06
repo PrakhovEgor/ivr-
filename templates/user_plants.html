@@ -1,3 +1,4 @@
+<!--Страница с растениями пользователя-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -7,7 +8,6 @@
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <h1 class="display-6">Ваши растения:</h1>
-
                 </div>
                 <div class="col-auto">
                     <input type="submit"
@@ -15,13 +15,11 @@
                            name="add" value="Добавить">
                 </div>
             </div>
-
             <div class="row g-3 align-items-center">
                 <div class="col-auto ">
                     <h1 class="display-6">Сортировка по</h1>
                 </div>
                 <div class="col-auto ">
-                    <!-- Добавляем кнопки сортировки -->
                     <div class="btn-group" role="group" aria-label="Сортировка">
                         <button type="submit" name="alph" class="btn btn-secondary">Алфавиту <i
                                 class="bi bi-caret-{{alph_dir}}-square"></i></button>
@@ -30,15 +28,14 @@
                     </div>
                 </div>
             </div>
-
         </div>
-
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
             {% for plant in user_plants %}
             <div class="col">
                 <div class="card shadow-sm" style="width: 18rem;">
                     <a href='/plant/{{plant[0]}}'><img src="{{url_for('static', filename=plant[4])}}"
-                                                       class="card-img-top" alt="Растение" width="100%" height="200" style="position: relative; object-fit: cover;"></a>
+                                                       class="card-img-top" alt="Растение" width="100%" height="200"
+                                                       style="position: relative; object-fit: cover;"></a>
                     <div class="card-body text-center">
                         <h5 class="card-title"><a href='/plant/{{plant[0]}}'
                                                   class="link-dark link-offset-2 link-underline link-underline-opacity-0">{{
@@ -50,5 +47,4 @@
         </div>
     </form>
 </div>
-
 {% endblock %}

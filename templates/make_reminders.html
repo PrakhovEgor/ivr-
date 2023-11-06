@@ -1,47 +1,44 @@
+<!--Создание напоминаний-->
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
-        <form action="" method="post">
-            <h1 class="display-4">Создание напоминаний</h1>
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label>Получатели:</label>
-                </div>
-                <div class="col-auto">
-                    {% for account in accounts %}
-                        <label><input type="checkbox" name="accounts" value={{ account[1] }} checked>{{ account[0] }}
-                        </label><br>
-                    {% endfor %}
-                </div>
-                {% if accs_error %}
-                    <div class="col-auto">
-                        <div class="alert alert-danger" role="alert">
-                            {{ accs_error }}
-                        </div>
-                    </div>
-                {% endif %}
+<div class="container">
+    <form action="" method="post">
+        <h1 class="display-4">Создание напоминаний</h1>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label>Получатели:</label>
             </div>
-
-
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label>Название:</label>
-                </div>
-
-                <div class="col-auto">
-                    <input type="text" class="form-control" name="name">
-                </div>
-                {% if name_error %}
-                    <div class="col-auto">
-                        <div class="alert alert-danger" role="alert">
-                            {{ name_error }}
-                        </div>
-                    </div>
-                {% endif %}
+            <div class="col-auto">
+                {% for account in accounts %}
+                <label><input type="checkbox" name="accounts" value="{{ account[1] }}" checked>{{ account[0] }}
+                </label><br>
+                {% endfor %}
             </div>
+            {% if accs_error %}
+            <div class="col-auto">
+                <div class="alert alert-danger" role="alert">
+                    {{ accs_error }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label>Название:</label>
+            </div>
+            <div class="col-auto">
+                <input type="text" class="form-control" name="name">
+            </div>
+            {% if name_error %}
+            <div class="col-auto">
+                <div class="alert alert-danger" role="alert">
+                    {{ name_error }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
         <div style="width:100%;overflow:hidden;">
-
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <label class="col-form-label">Список растений:</label>
@@ -59,115 +56,83 @@
             <div style="height:200px;width:50%;overflow-y:scroll;" id="plants_list">
             </div>
         </div>
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label>Тип напоминания:</label>
-                </div>
-                <div class="col-auto">
-                    <select class="form-select" aria-label="Default select example"
-                            name="m_type">
-                        <option value="-" selected>-</option>
-                        <option value="watering">Полив</option>
-                        <option value="planting">Посадка</option>
-                        <option value="harvesting">Сбор урожая</option>
-                        <option value="tending">Уход</option>
-                    </select>
-                </div>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label>Тип напоминания:</label>
             </div>
-
-            <br>
-            <p>Начальная дата:</p>
-            <input
-                    type="datetime-local"
-                    id="start_date"
-                    name="start_date"
-                    value="{{ cur_date + timedelta }}T{{ cur_time.split(':')[0] }}:00"
-                    min="{{ cur_date }}T{{ cur_time.split(':')[0] }}:00"
-                    max="2030-06-14T00:00"
-            />
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Периодичность: Каждые(ый)</label>
-                </div>
-                <div class="col-auto">
-                    <input value="1" min="0" max="100000" type="number" class="form-control"
-                           name="period">
-                </div>
-                <div class="col-auto">
-                    <select class="form-select" aria-label="Default select example"
-                            name="period_type">
-                        <option value="hour">Час</option>
-                        <option value="day" selected>День</option>
-                        <option value="month">Месяц</option>
-                        <option value="year">Год</option>
-                    </select>
-                </div>
-                <div class="col-auto">
-                    При отсутствии периодичности поставьте '0'
-                </div>
+            <div class="col-auto">
+                <select class="form-select" aria-label="Default select example"
+                        name="m_type">
+                    <option value="-" selected>-</option>
+                    <option value="watering">Полив</option>
+                    <option value="planting">Посадка</option>
+                    <option value="harvesting">Сбор урожая</option>
+                    <option value="tending">Уход</option>
+                </select>
             </div>
-
-            <div class="row g-3 align-items-center">
-                <div class="col-auto">
-                    <label class="col-form-label">Комментарий для себя:</label>
-                </div>
-                <div class="col-auto">
-                    <textarea class="form-control" name="comment"></textarea>
-                </div>
+        </div>
+        <br>
+        <p>Начальная дата:</p>
+        <input
+                type="datetime-local"
+                id="start_date"
+                name="start_date"
+                value="{{ cur_date + timedelta }}T{{ cur_time.split(':')[0] }}:00"
+                min="{{ cur_date }}T{{ cur_time.split(':')[0] }}:00"
+                max="2030-06-14T00:00"/>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label">Периодичность: Каждые(ый)</label>
             </div>
+            <div class="col-auto">
+                <input value="1" min="0" max="100000" type="number" class="form-control"
+                       name="period">
+            </div>
+            <div class="col-auto">
+                <select class="form-select" aria-label="Default select example"
+                        name="period_type">
+                    <option value="hour">Час</option>
+                    <option value="day" selected>День</option>
+                    <option value="month">Месяц</option>
+                    <option value="year">Год</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                При отсутствии периодичности поставьте '0'
+            </div>
+        </div>
+        <div class="row g-3 align-items-center">
+            <div class="col-auto">
+                <label class="col-form-label">Комментарий для себя:</label>
+            </div>
+            <div class="col-auto">
+                <textarea class="form-control" name="comment"></textarea>
+            </div>
+        </div>
 
-            <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
+        <input type="submit" class="btn btn-success m-2" name="save" value="Сохранить">
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {  // Фильтрация по поисковой строке
+        let plants = {{ plants|tojson }};
 
+        for (let i = 0; i < plants.length; i++) {
+            plant = plants[i];
 
-        </form>
-    </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            let plants = {{ plants|tojson }};
-
-            for (let i = 0; i < plants.length; i++) {
-                plant = plants[i];
-
-                var input = document.createElement("input");
-                input.type = "checkbox";
-                input.name = plant[0];
-                input.value = plant[1];
-                var label = document.createElement("label");
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(plant[1]));
-                var container = document.getElementById("plants_list");
-                container.appendChild(label);
-                var br = document.createElement("br");
-                container.appendChild(br);
-            }
-            search.addEventListener("click", (event) => {
-                var container = document.getElementById("plants_list");
-                container.innerHTML = '';
-                var promt = document.getElementById("search_field");
-
-                for (let i = 0; i < plants.length; i++) {
-                    var plant = plants[i];
-                    if (plant[1].toLowerCase().includes(promt.value.toLowerCase())) {
-                        var input = document.createElement("input");
-                        input.type = "checkbox";
-                        input.name = plant[0];
-                        input.value = plant[1];
-                        var label = document.createElement("label");
-                        label.appendChild(input);
-                        label.appendChild(document.createTextNode(plant[1]));
-
-                        container.appendChild(label);
-                        var br = document.createElement("br");
-                        container.appendChild(br);
-                    }
-                }
-            });
-
-
-        });
-
-        function checkInput() {
-            let plants = {{ plants|tojson }};
+            var input = document.createElement("input");
+            input.type = "checkbox";
+            input.name = plant[0];
+            input.value = plant[1];
+            var label = document.createElement("label");
+            label.appendChild(input);
+            label.appendChild(document.createTextNode(plant[1]));
+            var container = document.getElementById("plants_list");
+            container.appendChild(label);
+            var br = document.createElement("br");
+            container.appendChild(br);
+        }
+        search.addEventListener("click", (event) => {
             var container = document.getElementById("plants_list");
             container.innerHTML = '';
             var promt = document.getElementById("search_field");
@@ -188,7 +153,31 @@
                     container.appendChild(br);
                 }
             }
-        }
-    </script>
+        });
+    });
 
+    function checkInput() {
+        let plants = {{ plants|tojson }};
+        var container = document.getElementById("plants_list");
+        container.innerHTML = '';
+        var promt = document.getElementById("search_field");
+
+        for (let i = 0; i < plants.length; i++) {
+            var plant = plants[i];
+            if (plant[1].toLowerCase().includes(promt.value.toLowerCase())) {
+                var input = document.createElement("input");
+                input.type = "checkbox";
+                input.name = plant[0];
+                input.value = plant[1];
+                var label = document.createElement("label");
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(plant[1]));
+
+                container.appendChild(label);
+                var br = document.createElement("br");
+                container.appendChild(br);
+            }
+        }
+    }
+</script>
 {% endblock %}

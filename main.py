@@ -1,3 +1,4 @@
+#  Импорт библиотек
 import datetime
 import json
 import os
@@ -9,7 +10,6 @@ from flask import Flask, render_template, request, redirect, session, jsonify, u
 from forms.auth_form import LoginForm, RegisterForm, ForgotPassForm, ResetPassForm
 from flask_mysqldb import MySQL
 from flask_mail import Mail
-from flask_caching import Cache
 import random
 import string
 import locale
@@ -18,12 +18,13 @@ from collections import defaultdict
 from User_class import User
 from Plants_class import Plants
 
+#  Установка локального времени
 try:
     locale.setlocale(locale.LC_TIME, 'ru_RU')
 except:
     pass
 
-
+#  Логирование
 # log_config = {
 #     'version': 1,
 #     'disable_existing_loggers': False,
@@ -39,6 +40,8 @@ except:
 # }
 #
 # logging.config.dictConfig(log_config)
+
+#  Инициализация
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'bf&*gyusdgf^Sggf78y5sj'
 
@@ -72,7 +75,7 @@ en_to_ru = {
 }
 
 
-def User_():
+def User_():  # Функция обращения к классу User
     if session.get("User.user"):
         User_d = list(session.get("User.user").values())
         return User(id=User_d[0], email=User_d[1], mysql=mysql)
@@ -80,29 +83,30 @@ def User_():
         return User(mysql=mysql)
 
 
-def Plants_():
+def Plants_():  # Функция обращения к классу Plants
     User_d = list(session.get("User.plant").values())
     return Plants(id=User_d[0], email=User_d[1], mysql=mysql)
 
 
 @app.route('/process', methods=['POST'])
-def process():
+def process():  # Получение запроса от js(в make_bed.html) скрипта для сохранения грядки
     data = dict(request.form)
     User_().save_bed(data)
     return request.form
 
 
 @app.route('/get_data/<id>', methods=['GET'])
-def get_data(id):
+def get_data(id):  # Возвращаем грядку по id
     data = User_().get_beds(id)[0][3]
     return data
 
 
 @app.route('/', methods=["POST", "GET"])
-def main():
-    if not session.get("email", False):
+def main():  # Главная страница
+    if not session.get("email", False):  # Проверяем зарегистрирован ли пользователь
         return redirect("/login")
-    if not session.get("date_changed", 0):
+
+    if not session.get("date_changed", 0):  # Устанавливаем даты
         cur_date = datetime.datetime.now().date()
         start_date = cur_date - datetime.timedelta(days=3)
         end_date = cur_date + datetime.timedelta(days=3)
@@ -110,15 +114,13 @@ def main():
         session["timeto"] = end_date
         session["date_changed"] = 1
 
-    if request.method == "POST":
+    if request.method == "POST":  # Обрабатываем нажатия с кнопок
         if "date_picker" in request.form:
             start_date = datetime.datetime.strptime(request.form["timefrom"], "%Y-%m-%d")
             end_date = datetime.datetime.strptime(request.form["timeto"], "%Y-%m-%d")
-
             session["date_changed"] = 1
             session["timefrom"] = start_date
             session["timeto"] = end_date
-
         elif "date_reset" in request.form:
             cur_date = datetime.datetime.now().date()
             start_date = cur_date - datetime.timedelta(days=3)
@@ -133,12 +135,13 @@ def main():
             return redirect(f"day_history/tending/{request.form['tending']}")
         elif "harvesting" in request.form:
             return redirect(f"day_history/harvesting/{request.form['harvesting']}")
-        else:
+        else:  # Находим id кнопки добавления, которая была нажата
             button_id = list(request.form.keys())[-1]
             session["date_to_edit"] = get_date_by_id(button_id, session.get("days_list"))
             return redirect(f"/edit")
 
-    days_list = User_().get_date_list(session.get("timefrom"), session.get("timeto"))
+    days_list = User_().get_date_list(session.get("timefrom"), session.get(
+        "timeto"))  # Получаем список дней и действия по ним за определённый период
     session["days_list"] = days_list
 
     return render_template("index.html", main="Журнал", day_list=days_list,
@@ -147,7 +150,7 @@ def main():
 
 
 @app.route('/day_history/<m_type>/<day>', methods=["POST", "GET"])
-def day_history(m_type, day):
+def day_history(m_type, day):  # Страница с информацией по определённому дню
     history = list(User_().get_day_history(day))
     ids = [x[1] for x in history]
     plants = [Plants_().get_plants_idname(id=[x])[0][1] for x in ids]
@@ -159,14 +162,14 @@ def day_history(m_type, day):
 
 
 @app.route('/edit/', methods=["POST", "GET"])
-def edit():
+def edit():  # Страница с добавлением действия
     plants_to_plant = ""
     plants = Plants_().get_plants_idname()
     user_plants = Plants_().get_user_plants_id()
     all_ids = sorted(list(set(x[0] for x in plants) | set(user_plants)))
     all_plants = Plants_().get_plants_idname(id=all_ids)
 
-    if request.method == "POST":
+    if request.method == "POST":  # Обрабатываем нажатия с кнопок
         if "watering" in request.form:
             session['status'] = 1
         elif "planting" in request.form:
@@ -185,23 +188,24 @@ def edit():
         elif "save_p" in request.form:
             save_plants(request.form)
             comments = {}
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Находим все комментарии
                 if k.startswith("comment"):
                     comments[k.split("_")[1]] = v
-            seeds = get_lst_of_type("seeds", request.form.items())
-            sprouts = get_lst_of_type("sprouts", request.form.items())
+            seeds = get_lst_of_type("seeds", request.form.items())  # Находим для каких растений сколько семян посажено
+            sprouts = get_lst_of_type("sprouts",
+                                      request.form.items())  # Находим для каких растений сколько ростков посажено
             files = {}
-            for k, v in request.files.items():
+            for k, v in request.files.items():  # Находим все фотографии
                 name = v.filename
                 if name != '':
                     if not os.path.exists(f"static/{session.get('email')}"):
                         os.makedirs(f"static/{session.get('email')}")
                     v.save(os.path.join(f"static/{session.get('email')}", name))
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
-            for seed in seeds:
+            for seed in seeds:  # Сохраняем посаженные семена
                 User_().save_action(seed[0], "planting_seeds", {"count": seed[1], "img_src": files.get(seed[0], ''),
                                                                 'comment': comments.get(seed[0], "")})
-            for sprout in sprouts:
+            for sprout in sprouts:  # Сохраняем посаженные ростки
                 User_().save_action(sprout[0], "planting_sprouts",
                                     {"count": sprout[1], "img_src": files.get(sprout[0]),
                                      'comment': comments.get(sprout[0], "")})
@@ -212,17 +216,17 @@ def edit():
         elif "save_t" in request.form:
             save_plants(request.form)
             comments = {}
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Находим все комментарии
                 if k.startswith("comment"):
                     comments[k.split("_")[1]] = v
 
             temp = []
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Получаем тип ухода для каждого растения
                 id = k[:k.find('_')]
                 if k.endswith('type'):
                     temp.append([id, v])
             files = {}
-            for k, v in request.files.items():
+            for k, v in request.files.items():  # Находим все фото
                 name = v.filename
                 if name != '':
                     if not os.path.exists(f"static/{session.get('email')}"):
@@ -230,7 +234,7 @@ def edit():
                     v.save(os.path.join(f"static/{session.get('email')}", name))
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
 
-            for el in temp:
+            for el in temp:  # Сохраняем действия по уходу
                 User_().save_action(el[0], "tending_" + el[1],
                                     {"img_src": files.get(el[0], ''), "comment": comments.get(el[0], "")})
             return redirect("/")
@@ -239,11 +243,12 @@ def edit():
         elif "save_h" in request.form:
             save_plants(request.form)
             comments = {}
-            for k, v in request.form.items():
+
+            for k, v in request.form.items():  # Находим все комментарии
                 if k.startswith("comment"):
                     comments[k.split("_")[1]] = v
             temp = defaultdict(list)
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Получаем кол-во и вес для каждого растения
                 id = k[:k.find('_')]
                 if k.endswith('count'):
                     temp[id] = [v]
@@ -252,7 +257,7 @@ def edit():
             temp = list(map(lambda x: [x[0]] + x[1], list(temp.items())))
 
             files = {}
-            for k, v in request.files.items():
+            for k, v in request.files.items():  # Находим все фото
                 name = v.filename
                 if name != '':
                     if not os.path.exists(f"static/{session.get('email')}"):
@@ -260,7 +265,7 @@ def edit():
                     v.save(os.path.join(f"static/{session.get('email')}", name))
                     files[k.split('_')[1]] = f"static/{session.get('email')}/" + name
 
-            for el in temp:
+            for el in temp:  # Сохраняем действия по сбору урожая
                 User_().save_action(el[0], "harvesting",
                                     {"count": el[1], "weight": el[2], "img_src": files.get(el[0], ''),
                                      "comment": comments.get(el[0], "")})
@@ -270,7 +275,7 @@ def edit():
 
 
 @app.route('/register/', methods=["POST", "GET"])
-def register():
+def register():  # Страница регистрации
     form = RegisterForm()
     email_error = False
     space_error = False
@@ -286,21 +291,19 @@ def register():
                 else:
                     User_().save_user(email, password)
                     return redirect("/login")
-
     password_error = []
-    for key, m in form.errors.items():
+    for key, m in form.errors.items():  # Обрабатываем ошибки
         val = m
         if val == ['This field is required.']:
             val = ["Все поля обязательны к заполнению"]
         password_error.append({'field': key, 'messages': val})
-
     return render_template("register.html", main="Регистрация", form=form,
                            password_error=password_error,
                            email_error=email_error, space_error=space_error)
 
 
 @app.route('/login/', methods=["POST", "GET"])
-def login():
+def login():  # Страница аутентификации
     form = LoginForm()
     email_error = False
     password_error = False
@@ -310,7 +313,6 @@ def login():
             password = form.password.data
             if email not in get_emails():
                 email_error = True
-
             elif password != User(mysql=mysql).get_user_password(email):
                 password_error = True
             else:
@@ -320,20 +322,20 @@ def login():
                 session["User.user"] = User(email, id).__dict__
                 session["User.plant"] = Plants(email, id).__dict__
                 return redirect("/")
-
     return render_template("login.html", main="Авторизация", form=form, password_error=password_error,
                            email_error=email_error)
 
 
 @app.route('/forgot_password', methods=['GET', 'POST'])
-def forgot_password():
+def forgot_password():  # Страница сброса пароля(отправка письма)
     form = ForgotPassForm()
     success_text = ''
     danger_text = ''
     if request.method == 'POST':
         email = request.form['email']
         if email in get_emails():
-            token = ''.join(random.choices(string.ascii_letters + string.digits, k=20))
+            token = ''.join(random.choices(string.ascii_letters + string.digits,
+                                           k=20))  # Генерируем токен, чтобы проверить тот ли юзер пытается сбросить пароль
             session['email'] = email
             session['token'] = token
             body = f'''Здавствуйте, для смены пароля перейдите по ссылке: http://127.0.0.1:5000/reset_password/{token}'''
@@ -346,7 +348,7 @@ def forgot_password():
 
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_password(token):
+def reset_password(token):  # Страница обновления пароля
     form = ResetPassForm()
     if token != session.get('token', 'not token'):
         return redirect("/login")
@@ -362,19 +364,20 @@ def reset_password(token):
 
 
 @app.route('/user_plants', methods=['GET', 'POST'])
-def user_plants():
-    user_plants = Plants_().get_plants_idname(include_users=True, img=True, include_date=True)
+def user_plants():  # Страница с цветами пользователя
+    user_plants = Plants_().get_plants_idname(include_users=True, img=True,
+                                              include_date=True)  # Получаем растения пользователя
     if request.method == "POST":
         if "add" in request.form:
             return redirect("/add_plants")
-        elif "alph" in request.form:
+        elif "alph" in request.form:  # Кнопка фильтрации по алфавиту
             if session.get("alph_dir", "down") == "down":
                 session["alph_dir"] = "up"
                 user_plants.sort(key=lambda x: x[1])
             else:
                 session["alph_dir"] = "down"
                 user_plants.sort(key=lambda x: x[1], reverse=True)
-        elif "date" in request.form:
+        elif "date" in request.form:  # Кнопка фильтрации по дате добавления
             if session.get("date_dir", "down") == "down":
                 session["date_dir"] = "up"
                 user_plants.sort(key=lambda x: x[-1])
@@ -387,18 +390,18 @@ def user_plants():
 
 
 @app.route('/reminders', methods=['GET', 'POST'])
-def reminders():
-    accs = User_().get_user_tg()
+def reminders():  # Страница создания напоминаний
+    accs = User_().get_user_tg()  # Получаем telegram аккаунты пользователя
     if request.method == "POST":
         if "make" in request.form:
             return redirect('/make_reminder')
         else:
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Смотрим id кнопки для удаления
                 if k.startswith("delete"):
                     delete_reminder(k.split("_")[1])
 
-    data = transform_period(get_reminders())
-    for i in range(len(data)):
+    data = transform_period(get_reminders())  # Получаем обновленный список
+    for i in range(len(data)):  # Добавляем нумерацию растениям
         data[i]["plants"] = [f"{j + 1}) {x}" for j, x in enumerate(data[i]["plants"])]
     ids = [x["id"] for x in data]
 
@@ -407,8 +410,7 @@ def reminders():
 
 
 @app.route('/make_reminder', methods=['GET', 'POST'])
-def make_reminder():
-    search = ''
+def make_reminder():  # Страница создания напоминаний
     plant_input_placeholder = ''
     name_error = ''
     accs_error = ''
@@ -426,8 +428,8 @@ def make_reminder():
                 save_reminder(request.form)
                 return redirect("/reminders")
 
-    plants = Plants_().get_plants_idname(include_users=True)
-    accounts = User_().get_user_tg()
+    plants = Plants_().get_plants_idname(include_users=True)  # Получаем растения пользователя
+    accounts = User_().get_user_tg()  # Получаем telegram аккаунты пользователя
     return render_template("make_reminders.html", plants=plants, plant_input_placeholder=plant_input_placeholder,
                            cur_date=datetime.date.today(), cur_time=datetime.datetime.now().strftime("%H:%M"),
                            timedelta=datetime.timedelta(days=1), accounts=accounts, user=session.get('email'),
@@ -435,7 +437,7 @@ def make_reminder():
 
 
 @app.route('/constructor', methods=['GET', 'POST'])
-def constructor():
+def constructor():  # Страница с грядками
     name_error = ""
     if request.method == "POST":
         if "make" in request.form:
@@ -452,7 +454,7 @@ def constructor():
                 return redirect(f"/make_bed/{weight}/{height}/{name}")
         else:
             id_to_del = -1
-            for k, v in request.form.items():
+            for k, v in request.form.items():  # Удаляем грядку по id кнопки
                 if k.startswith("delete"):
                     id_to_del = int(k.split('_')[1])
                     User_().delete_bed(id_to_del)
@@ -462,14 +464,14 @@ def constructor():
                 id = get_id_from_request_form(request.form).pop()
                 return redirect(f"/make_bed/{-1}/{-1}/{-1}/{id}")
 
-    beds = User_().get_beds()
+    beds = User_().get_beds()  # Получаем список грядок
     return render_template("constructor.html", active_cg="text-white", main="Журнал", name_error=name_error,
                            user=session.get('email'), beds=beds, test=123, chart_data=123)
 
 
 @app.route('/make_bed/<width>/<height>/<name>', methods=['GET', 'POST'])
 @app.route('/make_bed/<width>/<height>/<name>/<id>', methods=['GET', 'POST'])
-def make_bed(width, height, name, id=None):
+def make_bed(width, height, name, id=None):  # Страница создания грядки
     data = ''
     if id:
         data = json.loads(User_().get_beds(id)[0][3])
@@ -481,32 +483,32 @@ def make_bed(width, height, name, id=None):
         if "save" in request.form:
             return redirect(url_for('constructor'))
 
-    plants = Plants_().get_plants_idname(include_users=True, img=True)
+    plants = Plants_().get_plants_idname(include_users=True, img=True)  # Получаем список растений пользователя с фото
     return render_template("make_bed.html", active_cg="text-white", width=width, height=height, name=name,
                            id=id, data=data,
                            plants=plants, user=session.get('email'))
 
 
 @app.route('/add_plants', methods=['GET', 'POST'])
-def add_plants():
+def add_plants():  # Страница с добавлением растений
     user_plants = Plants_().get_user_plants_id()
-    plants = Plants_().get_plants_idname()
+    plants = Plants_().get_plants_idname()  # Получаем список всех растений
     plant_input_placeholder = ""
     return render_template("add_plants.html", active_up="text-white", main="Журнал", user=session.get('email'),
                            user_plants=user_plants, plants=plants, plant_input_placeholder=plant_input_placeholder)
 
 
 @app.route('/plant/<plant_id>', methods=['GET', 'POST'])
-def plant(plant_id):
+def plant(plant_id):  # Страница с растением
     info = list(Plants_().get_plants_idname(id=plant_id)[0])
-
     description = json.loads(
         User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("\\xa0", " ").replace("\\xa0",
                                                                                                                " ").replace(
-            "\\r", " ").replace("\\n", " ").replace("extra_infromation", "Доп. информация"))
+            "\\r", " ").replace("\\n", " ").replace("extra_infromation", "Доп. информация"))  # Получаем описание
 
     name = info[1]
 
+    # Проверям есть ли у растение фото
     if os.path.isdir('static/' + session.get('email')) and name + '.jpg' in os.listdir(
             'static/' + session.get('email')):
         filename = session.get('email') + '/' + name + '.jpg'
@@ -515,7 +517,7 @@ def plant(plant_id):
     else:
         filename = "image_placeholder.jpg"
 
-    if request.method == "POST":
+    if request.method == "POST":  # Обрабатываем нажатие кнопок
         if 'edit' in request.form:
             return redirect(f"/edit_plant/{plant_id}")
         elif "delete" in request.form:
@@ -532,7 +534,7 @@ def plant(plant_id):
 
 
 @app.route('/edit_plant/<plant_id>', methods=['GET', 'POST'])
-def edit_plant(plant_id):
+def edit_plant(plant_id):  # Страница с редактированием информации
     info = list(Plants_().get_plants_idname(id=plant_id)[0])
     description = json.loads(
         User_().get_user_plants_adds().get(info[0], info[2]).replace("\'", "\"").replace("\\xa0", " ").replace("\\xa0",
@@ -568,7 +570,7 @@ def edit_plant(plant_id):
 
 
 @app.route('/history/<plant_id>', methods=['GET', 'POST'])
-def history(plant_id):
+def history(plant_id):  # Страница с просмотром истории для определённого растения
     selected = 0
     m_type = "all"
     info = list(Plants_().get_plants_idname(id=plant_id)[0])
@@ -589,43 +591,11 @@ def history(plant_id):
         session["timeto"] = end_date
         session["date_changed"] = 1
 
-    # if request.method == "POST":
-    #     if "date_picker" in request.form:
-    #         start_date = datetime.datetime.strptime(request.form["timefrom"], "%Y-%m-%d")
-    #         end_date = datetime.datetime.strptime(request.form["timeto"], "%Y-%m-%d")
-    #         session["date_changed"] = 1
-    #         session["timefrom"] = start_date
-    #         session["timeto"] = end_date
-    #
-    #     elif "date_reset" in request.form:
-    #         cur_date = datetime.datetime.now().date()
-    #         start_date = cur_date - datetime.timedelta(days=3)
-    #         end_date = cur_date + datetime.timedelta(days=3)
-    #         session["timefrom"] = start_date
-    #         session["timeto"] = end_date
-    # elif "m_type_btn" in request.form:
-    #     m_type = request.form["m_type"]
-    #     d = {"all": 0,
-    #          "watering": 1,
-    #          "planting": 2,
-    #          "tending": 3,
-    #          "harvesting": 4}
-    #     selected = d[m_type]
-
     history = Plants_().get_plant_history(plant_id, m_type=m_type)
-    # new_his = []
-    # for i in history:
-    #     timefrom = parse_date_string(session["timefrom"])
-    #     timeto = parse_date_string(session["timeto"])
-    #     if type(timefrom) == datetime.datetime:
-    #         timefrom = timefrom.date()
-    #     if type(timeto) == datetime.datetime:
-    #         timeto = timeto.date()
-    #     if i[-2] >= timefrom and i[-2] <= timeto:
-    #         new_his.append(i)
-    # new_his.sort(key=lambda x: x[4])
-    # print(new_his)
-
+    try:
+        history.sort(key=lambda x: x[4])
+    except:
+        pass
     return render_template("history.html", user=session.get("email", 0), history=history, name=name, filename=filename,
                            time_from=parse_date_string(session.get("timefrom")),
                            time_to=parse_date_string(session.get("timeto")),
@@ -633,10 +603,10 @@ def history(plant_id):
 
 
 @app.route('/create_plant', methods=['GET', 'POST'])
-def create_plant():
+def create_plant():  # Страница с созданием растения
     name_error = ''
     if request.method == "POST":
-        if 'save' in request.form:
+        if 'save' in request.form:  # Сохранение информации
             name = request.form["name"]
             file = request.files['image']
             d = dict()
@@ -664,12 +634,12 @@ def create_plant():
 
 
 @app.route('/profile', methods=['GET', 'POST'])
-def profile():
+def profile():  # Страница с профилем
     accs = User_().get_user_tg()
     if request.method == "POST":
         if "export" in request.form:
             return redirect("/export")
-        for i in request.form:
+        for i in request.form:  # Удалям tg аккаунт по id кнопки
             if i.startswith("delete"):
                 User_().delete_tg(user_id=i.split('_')[1])
                 return redirect("/profile")
@@ -678,27 +648,20 @@ def profile():
 
 
 @app.route('/export', methods=['GET', 'POST'])
-def export():
+def export():  # Страница с экспортом информации
     user_plants = Plants_().get_plants_idname(include_users=True)
     history = list(User_().get_all_history())
 
     if request.method == "POST":
-        if "user_plants" in request.form:
-            # Create a new Excel workbook
+        if "user_plants" in request.form:  # Сохранение xlsx файла
             workbook = Workbook()
             worksheet = workbook.active
-
-            # Add the table headers
             worksheet.append(['Название'])
 
-            # Add user_plants data to the worksheet
             for idx, plant in enumerate(user_plants):
                 worksheet.append([plant[1]])
 
-            # Create a BytesIO object to store the Excel file in memory
             excel_file = BytesIO()
-
-            # Save the workbook to the BytesIO object
             workbook.save(excel_file)
             excel_file.seek(0)
 
@@ -715,21 +678,24 @@ def export():
     for i in range(len(history)):
         history[i] = list(history[i])
         history[i][1] = plants[i]
+    try:
+        history.sort(key=lambda x: x[4])
+    except:
+        pass
     return render_template("export.html", user=session.get("email", 0), user_plants=enumerate(user_plants),
                            history=history)
 
 
 @app.route('/logout', methods=['GET', 'POST'])
-def logout():
+def logout():  # Выход из аккаунта
     session.clear()
     return redirect("/login/")
 
 
 @app.route('/download_xlsx', methods=['POST'])
-def download_xlsx():
-    data = request.json  # Получите данные из вашей таблицы, переданные через AJAX
+def download_xlsx():  # Сохранение xlsx файла
+    data = request.json  # Получает данные из таблицы, переданной через AJAX
 
-    # Создайте новую книгу Excel и активный лист
     workbook = Workbook()
     worksheet = workbook.active
 
@@ -742,18 +708,13 @@ def download_xlsx():
     else:
         filename = f"История.xlsx"
         worksheet.append(['Дата', 'Тип действия', 'Растение', 'Кол-во', 'Вес, кг', 'Комментарий'])
-    # Запишите данные из JSON в книгу Excel
 
     for row in data[:-1]:
         worksheet.append(row)
 
-    # Создайте буфер для хранения данных XLSX
     excel_file = BytesIO()
     workbook.save(excel_file)
     excel_file.seek(0)
-
-    # Определите имя файла и заголовки для HTTP-ответа
-
     quoted_filename = quote(filename.encode('utf-8'))
     response = Response(excel_file.getvalue(),
                         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
@@ -762,7 +723,7 @@ def download_xlsx():
 
 
 @app.route('/save_added_plants', methods=['POST'])
-def save_added_plants():
+def save_added_plants():  # Сохраняет добавленные растения
     ids = [int(x) for x in request.json]
     Plants_().save_plants_to_user(ids)
     return 200
@@ -782,7 +743,7 @@ def get_date_by_id(button_id, day_list):  # Возвращает дату по i
             return i[1]
 
 
-def parse_date_string(date_string):
+def parse_date_string(date_string):  # Парсит дату в нужный формат
     try:
         parsed_date = parse(date_string)
         return parsed_date
@@ -790,7 +751,7 @@ def parse_date_string(date_string):
         return date_string
 
 
-def get_id_from_request_form(r_form):
+def get_id_from_request_form(r_form):  # возвращает id из request.form
     plants_id = set()
     for i in r_form:
         if i.isnumeric():
@@ -800,7 +761,7 @@ def get_id_from_request_form(r_form):
     return plants_id
 
 
-def add_checked_for_plants(plants, ids):
+def add_checked_for_plants(plants, ids):  # К спискам в списке добавляет статус нажатия для checkbox
     temp_plants = []
     for i in plants:
         i = list(i)
@@ -812,6 +773,11 @@ def add_checked_for_plants(plants, ids):
 
 
 def get_lst_of_type(typeof, d):
+    """
+    :param typeof: семена или ростки
+    :param d: request.form
+    :return: список с кортежами, где 1-й элемент - id растения, а 2-й кол-во ростков/семян
+    """
     temp = defaultdict(int)
     for k, v in d:
         id = k[:k.find('_')]
@@ -819,21 +785,17 @@ def get_lst_of_type(typeof, d):
             temp[id] = 1
         elif k.endswith("_count") and id in temp.keys():
             temp[id] = v
-
     return list(map(lambda x: list(x), temp.items()))
 
 
-def continue_act(plants, d):
-    # user_plants = Plants_().get_user_plants_id()
+def continue_act(plants, d):  # Обрабатывает кнопку "Продолжить" при добавлении действия
     plants_id = get_id_from_request_form(d)
-    # plants_to_save = plants_id - set(user_plants)
-    # Plants_().save_plants_to_user(plants_to_save)
     plants = add_checked_for_plants(plants, plants_id)
     plants_to_plant = Plants_().get_plants_idname(id=plants_id, img=True)
     return plants, plants_to_plant
 
 
-def save_reminder(d):
+def save_reminder(d):  # Сохраняет напоминание
     info = d
     plants = []
     accounts = []
@@ -843,7 +805,6 @@ def save_reminder(d):
         elif k == "accounts":
             for acc in v:
                 accounts.append(acc)
-    # print(accounts, d)
     period = info["period"] + "_" + info["period_type"]
     with open('static/tg_data.json', 'r+', encoding='utf-8') as file:
         file_data = json.load(file)
@@ -862,7 +823,7 @@ def save_reminder(d):
     return
 
 
-def save_plants(r):
+def save_plants(r):  # Сохраняет растения пользователю
     user_plants = Plants_().get_user_plants_id()
     plants_id = get_id_from_request_form(r)
     plants_to_save = plants_id - set(user_plants)
@@ -871,6 +832,11 @@ def save_plants(r):
 
 
 def transform_period(data):
+    """
+    :param data: Список с напоминаниями
+    :return: Обновленный список
+    например строку '1_day' переводив в 'каждый день'
+    """
     data = data
     for i in range(len(data)):
         n, s = data[i]["period"].split("_")
@@ -917,42 +883,12 @@ def transform_period(data):
 
 
 @app.errorhandler(413)
-def request_entity_too_large(error):
+def request_entity_too_large(error):  # Обработка ошибки, если файл слишком большой
     return render_template("error.html", text="Упс, похоже Вы пытаетесь загрузить слишком большой файл. Допустимый "
                                               "объём скачивания - 8мб.")
 
 
-# API SECTION
-@app.route('/todo/api/v1.0/emails', methods=['GET'])
-def get_emails_api():
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT email, password FROM auth_data")
-    res = cursor.fetchall()
-    cursor.close()
-    return jsonify({'data': [dict(res)]})
-
-
-@app.route('/todo/api/v1.0/tg_accs', methods=['GET'])
-def get_tg_emails():
-    cursor = mysql.connection.cursor()
-    cursor.execute("SELECT telegram_id FROM telegram_data")
-    res = cursor.fetchall()
-    cursor.close()
-    return jsonify({'tg_accs': res})
-
-
-@app.route('/todo/api/v1.0/tg_registration', methods=['POST'])
-def post_tg_account():
-    data = request.json['tg_data']
-    cursor = mysql.connection.cursor()
-    cursor.execute("INSERT INTO telegram_data (email, telegram_id, name) VALUES(%s, %s, %s)",
-                   (data[0], data[1], data[2]))
-    mysql.connection.commit()
-    cursor.close()
-    return "success", 200
-
-
-def get_reminders():
+def get_reminders():  # Возвращает список напоминаний
     with open("static/tg_data.json", 'r', encoding='utf-8') as file:
         file_data = json.load(file)
         data = file_data["data"]
@@ -965,7 +901,7 @@ def get_reminders():
         return new_data
 
 
-def delete_reminder(id):
+def delete_reminder(id):  # Удаляет напоминание
     with open("static/tg_data.json", 'r+', encoding='utf-8') as file:
         file_data = json.load(file)
         data = file_data["data"]
@@ -981,6 +917,36 @@ def delete_reminder(id):
         file.truncate()
         json.dump(file_data, file, indent=2)
         return
+
+
+# API SECTION
+@app.route('/todo/api/v1.0/emails', methods=['GET'])
+def get_emails_api():  # Возварщает список почт
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT email, password FROM auth_data")
+    res = cursor.fetchall()
+    cursor.close()
+    return jsonify({'data': [dict(res)]})
+
+
+@app.route('/todo/api/v1.0/tg_accs', methods=['GET'])
+def get_tg_emails():  # Возвращает список telegram аккаунтов
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT telegram_id FROM telegram_data")
+    res = cursor.fetchall()
+    cursor.close()
+    return jsonify({'tg_accs': res})
+
+
+@app.route('/todo/api/v1.0/tg_registration', methods=['POST'])
+def post_tg_account():  # Добавляет новый tg аккаунт
+    data = request.json['tg_data']
+    cursor = mysql.connection.cursor()
+    cursor.execute("INSERT INTO telegram_data (email, telegram_id, name) VALUES(%s, %s, %s)",
+                   (data[0], data[1], data[2]))
+    mysql.connection.commit()
+    cursor.close()
+    return "success", 200
 
 
 if __name__ == '__main__':

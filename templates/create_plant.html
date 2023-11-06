@@ -1,3 +1,4 @@
+<!--Страница создания растения-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -12,7 +13,6 @@
                 <div class="col-auto">
                     <input type="text" class="form-control" placeholder="Роза белая" name="name">
                 </div>
-
                 {% if name_error%}
                 <div class="col-auto">
                     <div class="alert alert-danger" role="alert">
@@ -20,22 +20,14 @@
                     </div>
                 </div>
                 {% endif %}
-
-
             </div>
             <br>
-
             <div class="input-group mb-3 ">
-                <!--            <label class="input-group-text" for="inputGroupFile01">Фото:</label>-->
-                <!--            <input type="file" class="form-control" id="inputGroupFile01" name="image">-->
-
-
                 <input type="file" name="image" accept=".png,.jpg,.jpeg">
             </div>
             <h1 class="display-6">Дополнительная информация:</h1><br>
             <div class="col-auto">
                 <table class="table table-striped-columns">
-
                     <tbody>
                     <tr>
                         <td>Доп. информация</td>
@@ -50,5 +42,4 @@
         </div>
     </form>
 </div>
-
 {% endblock %}

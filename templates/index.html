@@ -1,5 +1,5 @@
+<!--Главная страница-->
 {% extends "base.html" %}
-
 
 {% block content %}
 <style>
@@ -30,8 +30,6 @@
                 <input type="submit" class="btn btn-danger btn-sm" name="date_reset" value="Сбросить">
             </div>
         </div>
-
-
         {% for day in day_list %}
         <div class="row justify-content-center py-3">
             <div class="col-auto">
@@ -48,19 +46,16 @@
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-watering-50.png" alt="">{{ day[2] }}
             </span>
                 </button>
-
                 <button type="submit" name="planting" class="test" value={{day[1]}}>
             <span class="badge d-flex align-items-center p-2 text-success-emphasis bg-success-subtle border border-success-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-planting-50.png" alt="">{{ day[3] }}
             </span>
                 </button>
-
                 <button type="submit" name="tending" class="test" value={{day[1]}}>
             <span class="badge d-flex align-items-center p-2 text-info-emphasis bg-info-subtle border border-info-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-plant-care-50.png" alt="">{{ day[5] }}
             </span>
                 </button>
-
                 <button type="submit" name="harvesting" class="test" value={{day[1]}}>
               <span class="badge d-flex align-items-center p-2 text-warning-emphasis bg-warning-subtle border border-warning-subtle rounded-pill">
                 <img class="rounded-circle me-1" width="32" height="32" src="/static/icons8-harvesting-32.png" alt="">
@@ -71,7 +66,6 @@
 
         </div>
         {% endfor %}
-
     </form>
 </div>
 {% endblock %}

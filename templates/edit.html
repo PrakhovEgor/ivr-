@@ -1,3 +1,4 @@
+<!--Страница добавления действия-->
 {% extends "base.html" %}
 
 
@@ -6,7 +7,6 @@
     <form action="" method="POST" enctype="multipart/form-data">
         <div class="container p-2">
             <h1 class="display-6">Чем Вы занимались сегодня?</h1>
-
             <input type="submit"
                    class="btn btn-{{['outline-', '', 'outline-', 'outline-', 'outline-'][status]}}success m-2"
                    name="watering" value="Полив">
@@ -20,9 +20,7 @@
                    class="btn btn-{{['outline-', 'outline-', 'outline-', 'outline-', ''][status]}}success m-2"
                    name="harvesting" value="Сбор урожая">
         </div>
-
         <div style="width:100%;overflow:hidden;">
-
             <div class="row g-3 align-items-center">
                 <div class="col-auto">
                     <label class="col-form-label">Список растений:</label>
@@ -42,16 +40,16 @@
                            id="search_field" oninput="checkInput()">
                 </div>
                 <div class="col-auto">
-                    <input type="button" class="btn btn-success" name="search" value="Искать" id="search" oninput="checkInput()">
+                    <input type="button" class="btn btn-success" name="search" value="Искать" id="search"
+                           oninput="checkInput()">
                 </div>
             </div>
             <div style="height:200px;width:100%;overflow-y:scroll;" id="plants_list">
             </div>
         </div>
-
-        {% if status == 1 %}
+        {% if status == 1 %}  <!--Если выбран полив-->
         <input type="submit" class="btn btn-success m-2" name="save_w" value="Сохранить">
-        {% elif status == 2 %}
+        {% elif status == 2 %} <!--Если выбрана посадка-->
         <br>
         <input type="submit" class="btn btn-success m-2" name="continue_p" value="Продолжить">
         <hr>
@@ -93,21 +91,16 @@
                 <div class="col-auto">
                     <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
-
             </div>
-
-
         </div>
-
         <br>
         {% endfor %}
         <input type="submit" class="btn btn-success m-2" name="save_p" value="Сохранить">
         {% endif %}
-        {% elif status == 3 %}
+        {% elif status == 3 %}  <!--Если выбран уход-->
         <br>
         <input type="submit" class="btn btn-success m-2" name="continue_t" value="Продолжить">
         <hr>
-
         {% if plants_to_plant %}
         {% for plant in plants_to_plant %}
         <div class="container align-items-center">
@@ -140,21 +133,16 @@
                 <div class="col-auto">
                     <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
-
             </div>
-
-
         </div>
-
         <br>
         {% endfor %}
         <input type="submit" class="btn btn-success m-2" name="save_t" value="Сохранить">
         {% endif %}
-        {% elif status == 4 %}
+        {% elif status == 4 %} <!--Если выбран сбор урожая-->
         <br>
         <input type="submit" class="btn btn-success m-2" name="continue_h" value="Продолжить">
         <hr>
-
         {% if plants_to_plant %}
         {% for plant in plants_to_plant %}
         <div class="container align-items-center">
@@ -162,7 +150,6 @@
                 <h1 class="display-6">{{ plant[1] }}</h1>
             </div>
             <div class="row g-3 align-items-center">
-
                 <div class="col-auto">
                     <label>Кол-во:</label>
                 </div>
@@ -170,7 +157,6 @@
                     <input value="1" min="1" max="1000" type="number" class="form-control"
                            name="{{plant[0]|string +'_count'}}">
                 </div>
-
                 <div class="col-auto">
                     <label>Вес:</label>
                 </div>
@@ -178,7 +164,6 @@
                     <input value="1" min="0.000" max="1000" step="0.1" type="number"
                            class="form-control"
                            name="{{plant[0]|string +'_weight'}}">
-
                 </div>
                 <div class="col-auto">
                     <label>Кг</label>
@@ -195,75 +180,50 @@
                 <div class="col-auto">
                     <textarea class="form-control" name="comment_{{plant[0]}}"></textarea>
                 </div>
-
             </div>
         </div>
-
         <br>
         {% endfor %}
         <input type="submit" class="btn btn-success m-2" name="save_h" value="Сохранить">
         {% endif %}
         {% endif %}
-
-
     </form>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => { // Обработка поиска растений
         let plants = {{plants | tojson}};
+        let container = document.getElementById("plants_list");
+        let user_plants = {{user_plants}};
+        let allOrUserSelect = document.getElementById("all_or_user");
 
-        for (let i = 0; i < plants.length; i++) {
-            var plant = plants[i];
+        function updatePlantList() {
+            container.innerHTML = '';
+            let promt = document.getElementById("search_field").value.toLowerCase();
+            let allOrUser = allOrUserSelect.value;
+            for (let i = 0; i < plants.length; i++) {
+                let plant = plants[i];
+                let [plantId, plantName, checked] = plant;
+                if (plantName.toLowerCase().includes(promt) && (allOrUser === "all" || user_plants.includes(plantId))) {
+                    let input = document.createElement("input");
+                    input.type = "checkbox";
+                    input.name = plantId;
+                    input.value = plantName;
+                    input.checked = checked === "checked";
 
-            var input = document.createElement("input");
-            input.type = "checkbox";
-            input.name = plant[0];
-            input.value = plant[1];
-            if (plant[plant.length - 1] === "checked"){
-                    input.checked = true;
+                    let label = document.createElement("label");
+                    label.appendChild(input);
+                    label.appendChild(document.createTextNode(plantName));
+
+                    container.appendChild(label);
+                    container.appendChild(document.createElement("br"));
                 }
-            var label = document.createElement("label");
-            label.appendChild(input);
-            label.appendChild(document.createTextNode(plant[1]));
-            var container = document.getElementById("plants_list");
-            container.appendChild(label);
-            var br = document.createElement("br");
-            container.appendChild(br);
-        }
-    });
-
-    function checkInput() {
-        let plants = {{plants | tojson}};
-
-        var container = document.getElementById("plants_list");
-        container.innerHTML = '';
-        var user_plants = {{user_plants}};
-        var all_or_user = document.getElementById("all_or_user").value;
-
-        var promt = document.getElementById("search_field");
-
-        for (let i = 0; i < plants.length; i++) {
-            var plant = plants[i];
-            if (plant[1].toLowerCase().includes(promt.value.toLowerCase()) && (all_or_user === "all" || user_plants.includes(plant[0]))) {
-                var input = document.createElement("input");
-                input.type = "checkbox";
-                input.name = plant[0];
-                input.value = plant[1];
-
-                if (plant[plant.length - 1] === "checked"){
-                    input.checked = true;
-                }
-                var label = document.createElement("label");
-                label.appendChild(input);
-                label.appendChild(document.createTextNode(plant[1]));
-
-                container.appendChild(label);
-                var br = document.createElement("br");
-                container.appendChild(br);
             }
         }
-    }
 
+        allOrUserSelect.addEventListener("input", updatePlantList);
+        document.getElementById("search_field").addEventListener("input", updatePlantList);
+        updatePlantList();
+    });
 </script>
 {% endblock %}

@@ -1,10 +1,10 @@
+<!--Страница с растением-->
 {% extends "base.html" %}
 
 {% block content %}
 <div class="container">
     <form action="" method="post">
         <div class="row g-3 align-items-center">
-
             <div class="col-auto">
                 <img src="{{url_for('static', filename=filename)}}" class="img" alt="Растение" height="300"
                      width="auto">
@@ -17,11 +17,8 @@
             {% else %}
             <div class="col-md-6">
                 <h1 class="display-6">{{name}}</h1>
-
             </div>
             {% endif %}
-
-
         </div>
         <div class="col-auto">
             <table class="table table-striped-columns">
@@ -36,8 +33,6 @@
                 {% endif %}
                 {% endif %}
                 {% endfor %}
-
-
                 </tbody>
             </table>
             {% if "description" in description.keys() %}
@@ -50,5 +45,4 @@
         </div>
     </form>
 </div>
-
 {% endblock %}

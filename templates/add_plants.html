@@ -1,3 +1,4 @@
+<!--Страница с добавлением растений-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -7,18 +8,19 @@
         border: none;
         background: none;
     }
+
     .badge-purple {
-    background-color: purple;
-    color: white; /* You can change the text color to match your design */
-  }
+        background-color: purple;
+        color: white; /* You can change the text color to match your design */
+    }
 </style>
 <div class="container">
     <form action="" method="post" class="text-center">
         <div class="container mx-auto">
             <h1 class="display-2">Добавление</h1>
             <div class="col" id="to_add"></div>
-            <div class="col"><input type="button" class="btn btn-success btn-sm" name="save" value="Сохранить" id="save" hidden></div>
-
+            <div class="col"><input type="button" class="btn btn-success btn-sm" name="save" value="Сохранить" id="save"
+                                    hidden></div>
             <label for="search_field" class="form-label">Начните вводить название:</label>
             <input type="text" class="form-control" name="plant_input" value="{{plant_input_placeholder}}"
                    id="search_field" oninput="checkInput()"><br>
@@ -28,18 +30,17 @@
 
     </form>
 </div>
-
 <script>
-    function checkInput(){
+    function checkInput() { // Проверяем ввод поиска
         const search = document.getElementById("search_field").value;
         const container = document.getElementById("container");
         container.innerHTML = '';
-        if (search.length > 1){
-            const plants = {{plants|tojson}};
-            const user_plants = {{user_plants|tojson}};
+        if (search.length > 1) {
+            const plants = {{plants|tojson}}; // Все растения
+            const user_plants = {{user_plants|tojson}}; // Растения юзера
             for (let i = 0; i < plants.length; i++) {
                 var plant = plants[i];
-                if (plant[1].toLowerCase().includes(search.toLowerCase())) {
+                if (plant[1].toLowerCase().includes(search.toLowerCase())) { // Если строка поиска содержится в названии растения, то отрисовываем его
                     var col = document.createElement("div");
                     col.classList.add("col");
                     var card = document.createElement("div");
@@ -49,8 +50,8 @@
                     img.src = `static/${plant[1]}.jpg`;
                     img.className = 'card-img-top';
                     img.alt = 'Растение';
-                    img.width="100%";
-                    img.height="200";
+                    img.width = "100%";
+                    img.height = "200";
                     img.style.position = "relative";
                     img.style.objectFit = "cover";
 
@@ -76,16 +77,13 @@
                         checkbox.autocomplete = 'off';
                         checkbox.onclick = check_click;
 
-
                         const label = document.createElement('label');
                         label.className = 'btn btn-outline-primary';
                         label.htmlFor = plant[0];
                         label.textContent = 'Добавить';
 
-
                         cardBody.appendChild(checkbox);
                         cardBody.appendChild(label);
-
                     }
                     card.appendChild(img);
                     card.appendChild(cardBody);
@@ -96,20 +94,17 @@
             console.log("END")
         }
     }
-
-    function check_click(event) {
+    function check_click(event) { // Обрабатывает нажатия на кнопку добавить у каждого растения
         const btn = document.getElementById(event.target.id);
         const to_add = document.getElementById("to_add");
-        if (btn.checked){
-            if (to_add.querySelectorAll("button").length == 0){
+        if (btn.checked) {
+            if (to_add.querySelectorAll("button").length == 0) {
                 const p = document.createElement("p");
                 p.textContent = "Будут добавлены:";
                 to_add.appendChild(p);
                 var saveButton = document.getElementById("save");
                 saveButton.hidden = false;
-
             }
-
             const plant_btn = document.createElement("button");
             plant_btn.type = "button";
             plant_btn.style.padding = '0';
@@ -119,6 +114,7 @@
             plant_btn.id = "to_del_button_" + btn.id.toString();
             plant_btn.onclick = remove;
             plant_btn.name = btn.id;
+
             const span = document.createElement("span");
             span.className = "badge badge-purple m-1";
             span.id = "to_del_span_" + btn.id.toString();
@@ -126,26 +122,25 @@
             span.style.fontSize = '15px';
             plant_btn.appendChild(span);
             to_add.appendChild(plant_btn);
-        } else{
+        } else {
             const plant_btn = document.getElementById("to_del_button_" + btn.id.toString());
             plant_btn.remove();
-            if (to_add.querySelectorAll("button").length == 0){
+            if (to_add.querySelectorAll("button").length == 0) {
                 remove_div()
-
             }
         }
     }
-    function remove(event) {
+    function remove(event) { // Удаляет фиолетовую кнопку(растения для добавления)
         const btn = document.getElementById(event.target.id);
         const id = event.target.id;
         const to_add = document.getElementById("to_add");
         var id_split = id.split("_")
-        if (id.includes("span")){
+        if (id.includes("span")) {
             const btn_to_del = document.getElementById(id.replace("span", "button"));
             btn_to_del.remove()
             const checkbox = document.getElementById(id_split[id_split.length - 1]);
             checkbox.checked = false;
-            if (to_add.querySelectorAll("button").length == 0){
+            if (to_add.querySelectorAll("button").length == 0) {
                 remove_div();
             }
 
@@ -153,47 +148,40 @@
             btn.remove()
             const checkbox = document.getElementById(id_split[id_split.length - 1]);
             checkbox.checked = false;
-            if (to_add.querySelectorAll("button").length == 0){
+            if (to_add.querySelectorAll("button").length == 0) {
                 remove_div();
             }
         }
     }
-
-    function remove_div() {
+    function remove_div() { // Удаляет контейнер, если нет растений для добавлений
         const to_add = document.getElementById("to_add");
         var p = to_add.querySelector("p");
         p.remove();
         var saveButton = document.getElementById("save");
         saveButton.hidden = true;
     }
-
-    function save(){
+    function save() {  // Обрабытвает нажаие на кнопку "Сохранить"
         const to_add = document.getElementById("to_add");
         const buts = to_add.querySelectorAll('button')
         var data = Array();
-        for (let i = 0; i < buts.length; i++) {
+        for (let i = 0; i < buts.length; i++) { // Собирает таблицу в список
             var btn = buts[i];
             var id_split = btn.id.split("_");
             var id = id_split[id_split.length - 1];
-
             data.push(id);
         }
-        $.ajax({
-                url: `/save_added_plants`,
-                method: 'POST',
-                data: JSON.stringify(data),
-                contentType: 'application/json',
-                xhrFields: {
-                    responseType: 'blob'  // Set the response type to 'blob'
-                }
-            });
+        $.ajax({ // Отправляет данные в бекенд
+            url: `/save_added_plants`,
+            method: 'POST',
+            data: JSON.stringify(data),
+            contentType: 'application/json',
+            xhrFields: {
+                responseType: 'blob'
+            }
+        });
         window.location.href = "/user_plants";
-
-
     }
     const saveButton = document.getElementById("save");
     saveButton.addEventListener("click", save);
-
 </script>
-
 {% endblock %}

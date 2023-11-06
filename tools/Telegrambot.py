@@ -19,7 +19,6 @@ while True:
         new_data = []
 
         for item in data:
-            print(item)
             if datetime.datetime.strptime(item["start_date"], "%Y-%m-%dT%H:%M") <= datetime.datetime.now():
                 for acc in item["tg_id"]:
                     text = f"Новое уведомление!\nНазвание: {item['name']}\n"
@@ -36,28 +35,29 @@ while True:
                 counts, typed = new_item['period'].split("_")
                 if counts != "0":
                     if typed == "hour":
-                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"], "%Y-%m-%dT%H:%M") + datetime.timedelta(hours=int(counts))
+                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"],
+                                                                            "%Y-%m-%dT%H:%M") + datetime.timedelta(
+                            hours=int(counts))
                     elif typed == "day":
-                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"], "%Y-%m-%dT%H:%M") + datetime.timedelta(days=int(counts))
+                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"],
+                                                                            "%Y-%m-%dT%H:%M") + datetime.timedelta(
+                            days=int(counts))
                     elif typed == "month":
-                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"], "%Y-%m-%dT%H:%M") + datetime.timedelta(months=int(counts))
+                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"],
+                                                                            "%Y-%m-%dT%H:%M") + datetime.timedelta(
+                            days=int(counts) * 30)
                     elif typed == "year":
-                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"], "%Y-%m-%dT%H:%M") + datetime.timedelta(years=int(counts))
+                        new_item['start_date'] = datetime.datetime.strptime(new_item["start_date"],
+                                                                            "%Y-%m-%dT%H:%M") + datetime.timedelta(
+                            days=int(counts) * 365)
                     new_item['start_date'] = new_item['start_date'].strftime("%Y-%m-%dT%H:%M")
                     new_data.append(new_item)
                     print(new_item)
             else:
                 new_data.append(item)
                 print("Рано")
-
         file_data["data"] = new_data
         file.seek(0)
         file.truncate()
         json.dump(file_data, file, indent=2)
     time.sleep(10)
-
-
-
-
-
-

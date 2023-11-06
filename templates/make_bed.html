@@ -1,3 +1,4 @@
+<!--Страница создая грядки-->
 {% extends "base.html" %}
 
 {% block content %}
@@ -47,7 +48,8 @@
                     <div class="col">
                         <div class="card shadow-sm" style="width: 15rem;">
                             <img src="{{url_for('static', filename=plant[4])}}" class="card-img-top"
-                                 alt="Растение" width="100%" height="200" style="position: relative; object-fit: cover;">
+                                 alt="Растение" width="100%" height="200"
+                                 style="position: relative; object-fit: cover;">
                             <div class="card-body text-center ">
                                 <h5 class="card-title">{{ plant[1] }}</h5>
                             </div>
@@ -76,17 +78,13 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", () => { // Отрисовка поля
         const garden = document.getElementById("garden");
-        const params = decodeURIComponent(window.location.pathname).split("/");
         let name = {{ name|tojson }};
         let width = Number({{ width }});
         let height = Number({{ height }});
         let data = {{ data|tojson }};
         let id = {{ id|tojson }};
-
-
-
 
         garden.style.width = '100%';
         garden.style.height = '100%';
@@ -98,10 +96,9 @@
 
         const toolbox = document.getElementById("toolbox");
 
-
         console.log('data', name, width, height, data);
         var y = 0;
-        while (y < height) {
+        while (y < height) { // Отрисовка клеток
             var x = 0;
             while (x < width) {
                 const cell = document.createElement("div");
@@ -118,13 +115,12 @@
 
                 const img = data[`${y}_${x}`];
                 console.log(img);
-                if (img){
+                if (img) {
                     const image = document.createElement("img");
                     image.src = "http://127.0.0.1:5000/static/" + img;
                     image.className = "image";
                     cell.appendChild(image);
                 }
-
                 garden.appendChild(cell);
                 x += 1
             }
@@ -133,12 +129,11 @@
 
         let draggedItem = null;
 
-        garden.addEventListener("dragstart", (event) => {
+        garden.addEventListener("dragstart", (event) => { // Обрабатывает начало перетаскивания картинки
             if (event.target.classList.contains("image")) {
                 const div = event.target.parentElement;
                 const child = div.children[1]
                 div.removeChild(child);
-
                 draggedItem = event.target;
             }
         });
@@ -159,7 +154,7 @@
             }
         });
 
-        toolbox.addEventListener("dragstart", (event) => {
+        toolbox.addEventListener("dragstart", (event) => { // Обрабатывает начало перетаскивание картинки из панели слева
             if (event.target.classList.contains("toolbox-image")) {
                 event.dataTransfer.setData("text/plain", event.target.src);
             }
@@ -173,11 +168,10 @@
             image.parentNode.removeChild(image);
         }
 
-        garden.addEventListener('dragend', function (e) {
+        garden.addEventListener('dragend', function (e) {  // Обрабатывает прекращение перетаскивания картинки
             if (draggedItem) {
                 const gardenRect = garden.getBoundingClientRect();
                 const imageRect = draggedItem.getBoundingClientRect();
-
                 if (
                     !(imageRect.left < gardenRect.left ||
                         imageRect.right > gardenRect.right ||
@@ -190,7 +184,7 @@
             }
         });
 
-        garden.addEventListener("drop", (event) => {
+        garden.addEventListener("drop", (event) => { // Обрабатывает отпускание пользователем картинки
             const imageUrl = event.dataTransfer.getData("text/plain");
             if (imageUrl) {
                 const cell = event.target.closest(".cell");
@@ -204,36 +198,31 @@
             }
         });
 
-        reset.addEventListener("click", (event) => {
+        reset.addEventListener("click", (event) => {  // Сбрасывает грядку
             const parentElement = document.getElementById('garden');
             const divElements = parentElement.querySelectorAll('div');
-
             divElements.forEach(function (div) {
                 div.innerHTML = "";
             });
             data = '';
         });
 
-        save.addEventListener("click", (event) => {
+        save.addEventListener("click", (event) => {  // переводит поле в массив и сохраняет
             const cells = document.querySelectorAll('.cell');
             var data_ = {'name': name, 'height': height, 'width': width, 'id': id};
-            console.log(cells);
-
-
             var y = 0;
             while (y < height) {
                 var x = 0;
                 while (x < width) {
-
                     if (cells[width * y + x].children.length > 0) {
                         const img = cells[4 * y + x].children[0];
                         const url = decodeURIComponent(img.src);
                         const l = url.split('/');
                         const f = url.split('/')[l.length - 2];
                         const s = url.split('/')[l.length - 1];
-                        if (f.includes("@")){
+                        if (f.includes("@")) {
                             data_[`${y}_${x}`] = f + "/" + s;
-                        } else{
+                        } else {
                             data_[`${y}_${x}`] = s;
                         }
                         console.log(data_[`${y}_${x}`])
@@ -245,8 +234,6 @@
                 }
                 y += 1;
             }
-            console.log(data_)
-
             $.ajax({
                 url: '/process',
                 type: 'POST',
@@ -255,14 +242,11 @@
                     console.log(error);
                 }
             });
-
-            // window.location.href ="http://127.0.0.1:5000/constructor";
         });
 
+
         const cells = document.querySelectorAll('.cell');
-
-        cells.forEach(cell => {
-
+        cells.forEach(cell => {  // Отрисовывает текст на картинке при наведении
             cell.addEventListener('mouseenter', () => {
                 const img = cell.querySelectorAll('img')[0]
                 if (img) {
@@ -270,29 +254,20 @@
                     const url = decodeURIComponent(img.src);
                     const name = url.split('/').reverse()[0].split('.')[0].split(" ").slice(0, 2).join(" ");
                     const textNode = document.createTextNode(name);
-
-
                     div.className = "centered";
                     div.appendChild(textNode);
-
                     cell.appendChild(div);
-
-                    // img.src = '/../static/trava4.jpg';
                 }
             });
 
             cell.addEventListener('mouseleave', () => {
                 const img = cell.querySelectorAll('img')[0]
-
-
                 if (img) {
                     const div = cell.children[1];
                     cell.removeChild(div);
                 }
             });
         });
-
-
     });
 </script>
 

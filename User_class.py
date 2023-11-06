@@ -102,7 +102,7 @@ class User:
 
         return date_list
 
-    def get_user_actions(self, start_date, end_date):
+    def get_user_actions(self, start_date, end_date):  # Возвращает все действия пользователя с start_date по end_date
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"SELECT plant_id, m_type, date FROM user_data WHERE user_id = {self.id} AND date >= '{start_date[1]}' AND date <= '{end_date[1]}'")
@@ -110,9 +110,8 @@ class User:
         cur.close()
         return res
 
-    def save_action(self, plant_id, type_act, addition):
+    def save_action(self, plant_id, type_act, addition):  # Сохраняет действие
         cursor = self.mysql.connection.cursor()
-
         cursor.execute(
             f" INSERT INTO user_data(user_id, plant_id, m_type, date, addition) VALUES(%s, %s, %s, %s, %s)",
             (self.id, plant_id, type_act, self.parse_date_string(session.get("date_to_edit")), json.dumps(addition)))
@@ -120,7 +119,7 @@ class User:
         cursor.close()
         return
 
-    def get_user_plants_adds(self):
+    def get_user_plants_adds(self):  # Возвращает все изменения юзера
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"SELECT plant_id, addition FROM user_data WHERE user_id = {self.id} AND m_type='addition'")
@@ -129,7 +128,7 @@ class User:
 
         return dict(res)
 
-    def save_custom_adds(self, plant_id, d):
+    def save_custom_adds(self, plant_id, d):  # Сохраняет пользовательские изменения по растению
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"INSERT INTO user_data(user_id, plant_id, m_type, addition) VALUES(%s, %s, %s, %s)",
@@ -139,6 +138,13 @@ class User:
         return
 
     def delete_plant_from_user(self, plant_id, name, filename=None, m_type=False):
+        """
+        :param plant_id: id растения
+        :param name: название растения
+        :param filename: путь до фото
+        :param m_type: удалить только описание или всё растение
+        :return: Удаляет данные по растению для пользователя
+        """
         if m_type:
             cur = self.mysql.connection.cursor()
             cur.execute(
@@ -151,13 +157,17 @@ class User:
             self.mysql.connection.commit()
             cur.close()
 
+            cur = self.mysql.connection.cursor()
+            cur.execute(f"DELETE FROM plants WHERE id = {plant_id} AND custom=1")
+            self.mysql.connection.commit()
+            cur.close()
 
-        if os.path.isdir('static/' + session.get('email')) and name + '.jpg' in os.listdir(f"static/{session.get('email')}"):
+        if os.path.isdir('static/' + session.get('email')) and name + '.jpg' in os.listdir(
+                f"static/{session.get('email')}"):
             hash0 = imagehash.average_hash(Image.open(f"static/{session.get('email')}/{name + '.jpg'}"))
             image_placeholder = imagehash.average_hash(Image.open("static/image_placeholder.jpg"))
             if not image_placeholder - hash0 < 5:
                 os.remove(os.path.join(f"static/{session.get('email')}", name + '.jpg'))
-
 
         cur = self.mysql.connection.cursor()
         cur.execute(
@@ -165,12 +175,10 @@ class User:
         beds = cur.fetchall()
 
         for bed in beds:
-            print(json.loads(bed[3]))
             new_data = json.loads(bed[3])
             for k, v in new_data.items():
                 if v == filename:
                     new_data[k] = ""
-            print([new_data, bed[0]])
             cur.execute("UPDATE garden_beds SET data = %s WHERE id = %s", [json.dumps(new_data), bed[0]])
             self.mysql.connection.commit()
         cur.close()
@@ -198,7 +206,7 @@ class User:
             json.dump(file_data, file, indent=2)
         return
 
-    def get_user_tg(self):
+    def get_user_tg(self):  # Возвращает tg аккаунт юзера
         email = self.email
         cur = self.mysql.connection.cursor()
         cur.execute(f"SELECT name, telegram_id FROM telegram_data WHERE email = %s", [email])
@@ -206,14 +214,14 @@ class User:
         cur.close()
         return res
 
-    def parse_date_string(self, date_string):
+    def parse_date_string(self, date_string):  # Парсит дату в нужный формат
         try:
             parsed_date = parse(date_string)
             return parsed_date
         except TypeError:
             return date_string
 
-    def save_bed(self, data):
+    def save_bed(self, data):  # Сохраняет грядку
         name = data['name']
         data_id = data['id']
         if not data_id:
@@ -235,7 +243,7 @@ class User:
             cur.close()
         return
 
-    def get_beds(self, id=None):
+    def get_beds(self, id=None):  # Возвращает грядку
         query = ''
         if id:
             query = f"AND id = {id}"
@@ -245,7 +253,7 @@ class User:
         cur.close()
         return res
 
-    def delete_bed(self, id):
+    def delete_bed(self, id):  # Удалаят грядку
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"DELETE FROM garden_beds WHERE id={id}")
@@ -253,14 +261,15 @@ class User:
         cur.close()
         return
 
-    def get_day_history(self, day):
+    def get_day_history(self, day):  # Возвращает историю по определённому дню
         cur = self.mysql.connection.cursor()
-        cur.execute(f"SELECT * FROM user_data WHERE user_id = {self.id} AND date = %s", [datetime.datetime.strptime(day, "%Y-%m-%d")])
+        cur.execute(f"SELECT * FROM user_data WHERE user_id = {self.id} AND date = %s",
+                    [datetime.datetime.strptime(day, "%Y-%m-%d")])
         res = cur.fetchall()
         cur.close()
         return res
 
-    def delete_tg(self, user_id):
+    def delete_tg(self, user_id):  # Удаалет tg аккаунт по id
         cur = self.mysql.connection.cursor()
         cur.execute(
             f"DELETE FROM telegram_data WHERE telegram_id={user_id}")
@@ -268,7 +277,7 @@ class User:
         cur.close()
         return
 
-    def get_all_history(self):
+    def get_all_history(self):  # Возвращает всю историю для пользователя
         cur = self.mysql.connection.cursor()
         cur.execute(f"SELECT * FROM user_data WHERE user_id = {self.id} AND m_type != 'own'")
         res = cur.fetchall()
